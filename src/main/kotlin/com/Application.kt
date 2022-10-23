@@ -19,7 +19,7 @@ fun main() {
             configureSockets()
         }
         connector {
-            port = 54321
+            port = 54322
             host = "0.0.0.0"
         }
     }).start(wait = true)

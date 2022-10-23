@@ -25,6 +25,7 @@ object ChatUserManagement {
 
     data class LoginUser(
         val uName: String,
+        val qq: String,
         val pwd: String
     )
 
@@ -40,7 +41,6 @@ object ChatUserManagement {
             val uName = strList[0]
             val qq = strList[1]
             val pwd = strList[2]
-
             return ChatUser(uName, qq, pwd)
         } catch (e: Exception) {
             println(e.message)
@@ -63,7 +63,7 @@ object ChatUserManagement {
             .encodeBase64()
         val newPwd = strList[3]
         //用户存在才可进行更新密码
-        if (getUserExist(oldContent, false)) {
+        if (getUserExist(oldContent)) {
             val chatUser = convertContentToUser(oldContent) ?: return@flowByIO false
             return@flowByIO useDataBasePool {
                 it.executeUpdate(
@@ -85,14 +85,15 @@ object ChatUserManagement {
                 val res = it.executeQuery(
                     """
                     select qq from User 
-                    where uName=='${loginUser.uName}'
-                    and Pwd =='${loginUser.pwd}'
+                    where uName='${loginUser.uName}'
+                    and Pwd ='${loginUser.pwd}'
                 """.trimIndent()
                 )
                 while (res.next()) {
                     s = res.getString("qq")
                 }
             }
+            println(s)
             s
         } catch (e: Exception) {
             ""
@@ -103,7 +104,7 @@ object ChatUserManagement {
     /**
      * 用户登录
      */
-    fun userLogin(content: String, c: Boolean = getUserExist(content, true)) = flowByIO { c }
+    fun userLogin(content: String, c: Boolean = getUserExist(content)) = flowByIO { c }
 
     /**
      * 用户登录时解码
@@ -111,65 +112,41 @@ object ChatUserManagement {
     private fun convertContentToLoginUser(content: String): LoginUser? {
         try {
             val strList = content.decodeBase64String().split("||")
-            if (strList.size != 2) {
+            if (strList.size != 3) {
                 return null
             }
             val uName = strList[0]
-            val pwd = strList[1]
-
-            return LoginUser(uName, pwd)
+            val pwd = strList[2]
+            val qq = strList[1]
+            return LoginUser(uName, qq, pwd)
         } catch (e: Exception) {
             println(e.message)
             return null
         }
     }
 
+
     /**
      * 查询用户是否存在
-     *
-     *          ``
-     *          当[userLogin]==`true`
-     *          仅判断用户名与密码是否正确
-     *          当[userLogin]==`false`
-     *          ``
      */
-    private fun getUserExist(content: String, userLogin: Boolean): Boolean {
+    private fun getUserExist(content: String): Boolean {
         try {
             var i = 0
-            if (userLogin) {
-                val loginUser = convertContentToLoginUser(content) ?: return false
-
-                useDataBasePool {
-                    val res = it.executeQuery(
-                        """
+            val chatUser = convertContentToUser(content) ?: return false
+            useDataBasePool {
+                val res = it.executeQuery(
+                    """
                 select * from User 
-                where  uName=='${loginUser.uName}'
-                    and Pwd=='${loginUser.pwd.encodeBase64()}'
+                where  uName='${chatUser.uName}'
+                    and qq='${chatUser.qq}'
+                    and Pwd='${chatUser.pwd}'
             """.trimIndent()
-                    )
-                    while (res.next()) {
-                        i++
-                    }
+                )
+                while (res.next()) {
+                    i++
                 }
-                return i == 1
-            } else {
-                val chatUser = convertContentToUser(content) ?: return false
-                useDataBasePool {
-                    val res = it.executeQuery(
-                        """
-                select * from User 
-                where  uName=='${chatUser.uName}'
-                    and qq=='${chatUser.qq}'
-                    and Pwd=='${chatUser.pwd.encodeBase64()}'
-            """.trimIndent()
-                    )
-                    while (res.next()) {
-                        i++
-                    }
-                }
-                return i == 1
             }
-
+            return i == 1
         } catch (e: Exception) {
             return false
         }
@@ -179,7 +156,7 @@ object ChatUserManagement {
      * 插入用户
      */
     fun insertUser(content: String) = flowByIO {
-        if (getUserExist(content, false)) {
+        if (getUserExist(content)) {
             return@flowByIO false
         }
         try {
@@ -188,7 +165,7 @@ object ChatUserManagement {
             val pwd = chatUser.pwd
             val qq = chatUser.qq
             useDataBasePool {
-                it.executeUpdate("insert into User values ('$uName','${pwd.encodeBase64()}','$qq',null)")
+                it.executeUpdate("insert into User values ('$uName','${pwd}','$qq',null)")
             }
         } catch (e: Exception) {
             println(e.message)

@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.println
 import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
@@ -12,25 +13,28 @@ import io.ktor.websocket.serialization.*
 import kotlinx.coroutines.channels.consumeEach
 import java.util.*
 
-data class OutGoingData(
+data class MsgData(
     val nickName: String,
     val msg: String,
-    val chatRoomId: String
-)
-
-data class IncomingData(
-    val nickName: String,
-    val msg: String,
-    val chatRoomId: String
+    val chatRoomId: String,
+    val qq: String
 )
 
 data class UserSession(
     val uuid: String,
     val nickName: String,
-    val chatRoomId: String,
 )
 
-class Conn(val session: DefaultWebSocketSession, val userSession: UserSession)
+data class GroupList(
+    val list: MutableList<Group>
+)
+
+data class Group(
+    val groupName: String,
+    val groupId: String
+)
+
+class Conn(val session: DefaultWebSocketSession)
 
 /**
  * @author wusui
@@ -53,33 +57,33 @@ fun Application.configureSockets() {
         }
     }
     routing {
-
         route("/anki") {
-//            static {
-//                get {
-//                    call.respondRedirect("/chat")
-//                }
-//            }
-            val conns = Collections.synchronizedSet<Conn>(LinkedHashSet())
+            val connections = Collections.synchronizedSet<Conn>(LinkedHashSet())
+            get("/groupList") {
+                call.respond(
+                    GroupList(
+                        //TODO 可以自己添加群组，暂时不支持动态建群组
+                        list = mutableListOf(
+                            Group("测试群聊1", "聊天室 0"),
+                            Group("测试群聊1", "聊天室 1")
+                        )
+                    )
+                )
+            }
             webSocket("/chat") {
-                val params = call.parameters
-                val uuid = params["uuid"] ?: UUID.randomUUID().toString()
-                val nickName = params["nickName"] ?: return@webSocket
-                val chatRoomId = params["chatRoomId"] ?: return@webSocket
-                val conn = Conn(this, UserSession(uuid, nickName, chatRoomId))
-                conns.add(conn)
+                val conn = Conn(this)
+                connections.add(conn)
                 try {
                     incoming.consumeEach { frame ->
                         val gson = Gson()
-                        val b = gson.fromJson(frame.readBytes().decodeToString(), IncomingData::class.java)
-                        conns.filter {
-                            it.userSession.chatRoomId == conn.userSession.chatRoomId
-                        }.forEach {
+                        val b = gson.fromJson(frame.readBytes().decodeToString(), MsgData::class.java)
+                        connections.forEach {
                             it.session.sendSerializedBase(
-                                OutGoingData(
-                                    conn.userSession.nickName,
+                                MsgData(
+                                    b.nickName,
                                     b.msg,
-                                    chatRoomId
+                                    b.chatRoomId,
+                                    b.qq
                                 ),
                                 GsonWebsocketContentConverter(),
                                 Charsets.UTF_8
@@ -89,9 +93,8 @@ fun Application.configureSockets() {
                 } catch (e: Exception) {
                     e.message?.println()
                 } finally {
-                    conns.remove(conn)
+                    connections.remove(conn)
                     close()
-                    println(conns.size)
                 }
 
             }

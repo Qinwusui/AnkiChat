@@ -31,6 +31,7 @@ fun Application.login() {
             //登录接口
             post("/login") {
                 val signInfo = call.receive<SignInfo>()
+                println(signInfo)
                 ChatUserManagement.userLogin(signInfo.content).collect {
                     if (it) {
                         call.respond(ResInfo.LoginSuccess)
