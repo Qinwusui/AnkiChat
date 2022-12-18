@@ -1,22 +1,20 @@
 package com
 
-import com.plugins.configureSockets
-import com.plugins.login
+import com.plugins.loadPlugin
+import io.ktor.http.*
+import io.ktor.serialization.gson.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.util.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.websocket.*
 import org.slf4j.LoggerFactory
-
-fun String.println() = println(this)
 
 fun main() {
     embeddedServer(Netty, environment = applicationEngineEnvironment {
-        log = LoggerFactory.getLogger("ktor.application")
-//        watchPaths = listOf("classes")
-//        developmentMode=true
+        log = LoggerFactory.getLogger("ktor-server")
         module {
-            login()
-            configureSockets()
+            module()
         }
         connector {
             port = 54322
@@ -25,4 +23,17 @@ fun main() {
     }).start(wait = true)
 }
 
-
+fun Application.module() {
+    install(WebSockets) {
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+        contentConverter = GsonWebsocketContentConverter()
+    }
+    install(Compression) {
+        gzip {
+            matchContentType(ContentType.Video.Any)
+        }
+    }
+//    install(PartialContent)
+    loadPlugin()
+}
