@@ -46,7 +46,7 @@ fun Application.loadPlugin() {
 
     routing {
         addPluginFirstLoad(this)
-        route("/refreshPlugin") {
+            route("/refreshPlugin") {
             get("/load") {
                 val path = call.parameters["path"] ?: return@get
                 val pluginName = call.parameters["pName"] ?: return@get
