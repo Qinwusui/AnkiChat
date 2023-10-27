@@ -1,10 +1,9 @@
 package com.chat
 
 import com.group.GroupController
-import com.user.Message
-import com.user.UserSession
+import com.data.Message
+import com.data.UserSession
 import com.utils.gson
-import com.utils.successOut
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*

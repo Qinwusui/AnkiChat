@@ -1,6 +1,6 @@
 package com.chat
 
-import com.user.UserSession
+import com.data.UserSession
 import com.utils.successOut
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*

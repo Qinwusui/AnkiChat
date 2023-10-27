@@ -125,15 +125,12 @@ object DataBaseManager {
 	}
 
 	//将数据库操作统一到一个地方
-	fun useStatement(block: Statement.() -> Unit): Boolean {
+	fun useStatement(isSelect: Boolean = false, block: Statement.() -> Unit): Boolean {
 		runCatching {
-			connection = DriverManager.getConnection(DB)
-			connection.autoCommit = false
-			statement = connection.createStatement()
 			statement.apply(block)
-			connection.commit()
-			statement.close()
-			connection.close()
+			if (!isSelect) {
+				connection.commit()
+			}
 		}.exceptionOrNull()?.let {
 			it.errorOut()
 			return false
@@ -144,13 +141,10 @@ object DataBaseManager {
 	//使用preparedStatement防止一部分SQL注入
 	fun usePreparedStatement(sql: String, block: PreparedStatement.() -> Unit): Boolean {
 		runCatching {
-			connection = DriverManager.getConnection(DB)
-			connection.autoCommit = false
 			val preparedStatement = connection.prepareStatement(sql)
 			preparedStatement.apply(block)
 			preparedStatement.execute()
 			connection.commit()
-			connection.close()
 		}.exceptionOrNull()?.let {
 			it.errorOut()
 			return false

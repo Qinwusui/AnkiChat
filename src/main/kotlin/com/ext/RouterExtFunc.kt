@@ -1,12 +1,12 @@
 package com.ext
 
 import com.group.GroupController
-import com.user.GroupListResData
-import com.user.GroupReqData
-import com.user.GroupResData
+import com.data.GroupListResData
+import com.data.GroupReqData
+import com.data.GroupResData
 import com.user.UserController
-import com.user.UserRegisterReqData
-import com.user.UserSession
+import com.data.UserRegisterReqData
+import com.data.UserSession
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*

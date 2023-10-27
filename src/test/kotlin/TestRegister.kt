@@ -1,7 +1,24 @@
-import com.user.UserController
-import com.user.UserRegisterReqData
 import com.utils.successOut
+import java.util.Date
 
 fun main() {
-	UserController.userExist("1f143cdf50d24bf3824754a6f0293393").successOut()
+	val b = OnClickListener {
+		Date()
+	}
+	b.onClick().successOut()
+
+}
+
+interface OnClickListener<T> {
+	fun onClick(): T
+
+	companion object {
+		operator fun <T> invoke(block: () -> T): OnClickListener<T> {
+			return object : OnClickListener<T> {
+				override fun onClick(): T {
+					return block()
+				}
+			}
+		}
+	}
 }

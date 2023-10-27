@@ -3,7 +3,7 @@ package com
 import com.chat.chat
 import com.google.gson.GsonBuilder
 import com.group.group
-import com.user.UserSession
+import com.data.UserSession
 import com.user.user
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
@@ -20,9 +20,19 @@ import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.security.KeyStore
 import java.time.Duration
 
 fun main() {
+//	val keystoreFile=File("./k.jks")
+//	val key= buildKeyStore {
+//		certificate("wusui"){
+//			password="Qinsansui233..."
+//			domains= listOf("127.0.0.1","localhost","0.0.0.0")
+//
+//		}
+//	}
+//	key.saveToFile(keystoreFile,"Qinsansui233...")
 
 	embeddedServer(Netty, environment = applicationEngineEnvironment {
 		log = LoggerFactory.getLogger("ktor")
@@ -33,6 +43,14 @@ fun main() {
 		}
 		connector {
 			port = 2341
+			host = "0.0.0.0"
+		}
+		sslConnector(
+			KeyStore.getInstance(File("./k.jks"), "Qinsansui233...".toCharArray()),
+			keyAlias = "wusui",
+			keyStorePassword = { "Qinsansui233...".toCharArray() },
+			privateKeyPassword = { "Qinsansui233...".toCharArray() }) {
+			port = 443
 			host = "0.0.0.0"
 		}
 	}, configure = {
@@ -63,8 +81,11 @@ fun Application.module() {
 		})
 	}
 	install(Sessions) {
+
 		val secretSignKey = hex("6819b57a326945c1968f45236589")
-		header<UserSession>("user", directorySessionStorage(File("build/.sessions"))) {
+		cookie<UserSession>("user", directorySessionStorage(File("build/.sessions"))) {
+			cookie.maxAgeInSeconds = 20
+			cookie.httpOnly = false
 			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
 		}
 	}

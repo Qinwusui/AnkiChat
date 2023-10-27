@@ -1,11 +1,11 @@
 package com.group
 
 import com.database.DataBaseManager
-import com.user.Group
-import com.user.GroupListResData
-import com.user.GroupReqData
-import com.user.GroupResData
-import com.user.User
+import com.data.Group
+import com.data.GroupListResData
+import com.data.GroupReqData
+import com.data.GroupResData
+import com.data.User
 import com.user.UserController
 import com.utils.generateId
 
@@ -55,7 +55,7 @@ object GroupController {
 	fun getUserOwnerGroup(userId: String): GroupListResData {
 		if (!UserController.userExist(userId)) return GroupListResData(success = false, msg = "没有这个用户")
 		var groupList: MutableList<Group> = mutableListOf()
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val list = mutableListOf<Group>()
 			val set = executeQuery("select * from groups where owner_id ='$userId'")
 			while (set.next()) {
@@ -78,7 +78,7 @@ object GroupController {
 	fun getJoinedGroup(userId: String): GroupListResData {
 		if (!UserController.userExist(userId)) return GroupListResData(success = false, msg = "没有这个用户")
 		var groupList: MutableList<Group> = mutableListOf()
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val list = mutableListOf<Group>()
 			val set = executeQuery(
 				"""
@@ -108,7 +108,7 @@ object GroupController {
 	//检查id对应的群聊是否存在
 	private fun groupExist(groupId: String): Boolean {
 		var sum = 0
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set = executeQuery("select count() from groups where group_name='$groupId' or group_id='$groupId'")
 			sum = set.getInt("count()")
 		}
@@ -119,7 +119,7 @@ object GroupController {
 	fun findGroupById(groupId: String): Group? {
 		if (!groupExist(groupId)) return null
 		var group: Group? = null
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set = executeQuery("select * from groups where group_id='$groupId'")
 			group = Group(
 				groupId = set.getString("group_id"),
@@ -135,7 +135,7 @@ object GroupController {
 	fun findAllUsersByGroupId(groupId: String): List<User>? {
 		if (!groupExist(groupId)) return null
 		val userList = mutableListOf<User>()
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set = executeQuery(
 				"""
 				select user_id, user_name, reg_time, last_online_time, validate

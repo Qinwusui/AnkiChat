@@ -1,7 +1,7 @@
 package com.chat
 
 import com.database.DataBaseManager
-import com.user.UserSession
+import com.data.UserSession
 import io.ktor.server.websocket.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -18,7 +18,7 @@ object ChatManager {
 		if (toId.isEmpty()) return false
 		if (!toId.lowercase().all { it in '0'..'9' || it in 'a'..'z' }) return false
 		var sum = 0
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set = executeQuery(
 				"""
 				select count() from user where user_id ='$toId' and 1=1

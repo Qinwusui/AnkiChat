@@ -1,5 +1,7 @@
 package com.user
 
+import com.data.UserRegisterReqData
+import com.data.UserRespData
 import com.database.DataBaseManager
 import com.utils.generateId
 import io.ktor.util.*
@@ -52,7 +54,7 @@ object UserController {
 	//检查用户是否存在 可以通过用户名和id同时查找
 	fun userExist(userName: String): Boolean {
 		var sum = 0
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set = executeQuery("select count() from user where user_name='$userName' or user_id='$userName'")
 			sum = set.getInt("count()")
 		}
@@ -67,7 +69,7 @@ object UserController {
 		val token = userRegisterReqData.pwd.generateToken()
 		var i = 0
 		var userId = ""
-		DataBaseManager.useStatement {
+		DataBaseManager.useStatement(isSelect = true) {
 			val set =
 				executeQuery(
 					"""
