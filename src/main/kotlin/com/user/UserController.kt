@@ -7,9 +7,13 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 object UserController {
+	enum class UserType {
+		Register, Login, Logout
+	}
+
 	//简单验证用户信息是否满足条件
 	//TODO 这个验证应该做两次，一次在前端，一次在后端
-	fun validate(userRegisterReqData: UserRegisterReqData, register: Boolean): UserRespData {
+	fun validateUserInfo(userRegisterReqData: UserRegisterReqData, register: UserType): UserRespData {
 		if (!userRegisterReqData.userName.isSimpleAlpha()) {
 			return UserRespData(success = false, msg = "用户名只应由0..9 a..z A..Z 组成")
 		}
@@ -23,11 +27,26 @@ object UserController {
 			return UserRespData(success = false, msg = "密码长度应在8-12位")
 		}
 
-		return if (register) {
-			register(userRegisterReqData)
-		} else {
-			login(userRegisterReqData)
+		return when (register) {
+			UserType.Register -> register(userRegisterReqData)
+			UserType.Login -> login(userRegisterReqData)
+			UserType.Logout -> logOut(userRegisterReqData)
 		}
+	}
+
+	private fun logOut(userRegisterReqData: UserRegisterReqData): UserRespData {
+		if (!userExist(userRegisterReqData.userName)) return UserRespData(success = false, msg = "没有这个用户")
+		DataBaseManager.useStatement {
+			executeUpdate(
+				"""
+				update user
+				set last_online_time = '${System.currentTimeMillis()}'
+				where user_name = '${userRegisterReqData.userName}'
+				and 1=1;
+			""".trimIndent()
+			)
+		}
+		return UserRespData(success = true, msg = "退出账号成功")
 	}
 
 	//检查用户是否存在 可以通过用户名和id同时查找

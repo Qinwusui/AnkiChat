@@ -20,6 +20,7 @@ data class UserRespData(
 @Serializable
 data class UserSession(
 	val userId: String,
+	val userName: String,
 	val token: String,
 )
 
@@ -37,6 +38,7 @@ data class GroupResData(
 	val success: Boolean = false,
 	val msg: String = ""
 )
+
 @Serializable
 data class GroupListResData(
 	val success: Boolean,
@@ -49,5 +51,22 @@ data class GroupListResData(
 data class Group(
 	val groupId: String,
 	val groupName: String,
-	val ownerId: String
+	val ownerId: String,
+	val creatorId: String
+)
+
+@Serializable
+data class Message<out T>(
+	val toId: String?,
+	val type: String?,
+	val data: T?
+)
+
+@Serializable
+data class User(
+	val userName: String,
+	val userId: String,
+	val validate: Int,
+	val registerTime: Long,
+	val onlineTime: Long
 )

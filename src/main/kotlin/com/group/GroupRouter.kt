@@ -1,12 +1,15 @@
 package com.group
 
-import com.routers.createGroup
-import com.routers.groupList
+import com.ext.createGroup
+import com.ext.joinedGroup
+import com.ext.ownerGroup
 import io.ktor.server.routing.*
 
 fun Routing.group() {
 	route("/group") {
 		createGroup()
-		groupList()
+		ownerGroup()
+		joinedGroup()
+
 	}
 }

@@ -1,7 +1,6 @@
 package com.database
 
 import com.utils.errorOut
-import kotlinx.coroutines.flow.flow
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
@@ -98,8 +97,8 @@ object DataBaseManager {
 			"""
 			create table group_members
 			(
-			    group_id integer not null,
-			    id       integer not null
+			    group_id      integer not null,
+			    user_id       integer not null
 			);
 		""".trimIndent()
 		)
@@ -126,10 +125,15 @@ object DataBaseManager {
 	}
 
 	//将数据库操作统一到一个地方
-	fun useStatement(block: Statement.() -> Unit):Boolean {
+	fun useStatement(block: Statement.() -> Unit): Boolean {
 		runCatching {
+			connection = DriverManager.getConnection(DB)
+			connection.autoCommit = false
+			statement = connection.createStatement()
 			statement.apply(block)
 			connection.commit()
+			statement.close()
+			connection.close()
 		}.exceptionOrNull()?.let {
 			it.errorOut()
 			return false
@@ -140,10 +144,13 @@ object DataBaseManager {
 	//使用preparedStatement防止一部分SQL注入
 	fun usePreparedStatement(sql: String, block: PreparedStatement.() -> Unit): Boolean {
 		runCatching {
+			connection = DriverManager.getConnection(DB)
+			connection.autoCommit = false
 			val preparedStatement = connection.prepareStatement(sql)
 			preparedStatement.apply(block)
 			preparedStatement.execute()
 			connection.commit()
+			connection.close()
 		}.exceptionOrNull()?.let {
 			it.errorOut()
 			return false
