@@ -1,12 +1,12 @@
 package com.ext
 
-import com.group.GroupController
 import com.data.GroupListResData
 import com.data.GroupReqData
 import com.data.GroupResData
-import com.user.UserController
 import com.data.UserRegisterReqData
 import com.data.UserSession
+import com.group.GroupController
+import com.user.UserController
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -84,4 +84,25 @@ fun Route.joinedGroup() = get("/joined") {
 	}
 	val groupList = GroupController.getJoinedGroup(session.userId)
 	call.respond(groupList)
+}
+
+//@GET groupList 搜索群聊
+//id 群id
+fun Route.searchGroup() = get("/search") {
+	val session = call.sessions.get<UserSession>()
+	if (session == null) {
+		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+		return@get
+	}
+	val id = call.request.queryParameters["id"]
+	if (id == null) {
+		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+		return@get
+	}
+	val group = GroupController.findGroupById(id)
+	if (group==null){
+		call.respond(GroupListResData(success = false, msg = "没有找到该群"))
+		return@get
+	}
+	call.respond(group)
 }

@@ -62,6 +62,7 @@ fun Application.module() {
 	install(WebSockets) {
 		maxFrameSize = Long.MAX_VALUE
 		masking = false
+
 		pingPeriod = Duration.ofSeconds(15)
 		timeout = Duration.ofSeconds(15)
 
@@ -77,14 +78,18 @@ fun Application.module() {
 	install(ContentNegotiation) {
 		json(Json {
 			prettyPrint = true
-			ignoreUnknownKeys = true
+			ignoreUnknownKeys = false
 		})
+		gson {
+			setPrettyPrinting()
+			disableHtmlEscaping()
+		}
 	}
 	install(Sessions) {
 
 		val secretSignKey = hex("6819b57a326945c1968f45236589")
 		cookie<UserSession>("user", directorySessionStorage(File("build/.sessions"))) {
-			cookie.maxAgeInSeconds = 20
+			cookie.maxAgeInSeconds = 60 * 60 * 24
 			cookie.httpOnly = false
 			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
 		}
