@@ -55,11 +55,18 @@ data class Group(
 	val creatorId: String
 )
 
+
 @Serializable
-data class Message<out T>(
-	val toId: String?,
-	val type: String?,
-	val data: T?
+data class Message(
+	var sendId: String,//发送者ID
+	val toId: String,//接收者ID
+	val data: String?,//消息内容
+	val type: String,//消息类型
+)
+
+@Serializable
+data class MessageList(
+	val messages: List<Message>
 )
 
 @Serializable

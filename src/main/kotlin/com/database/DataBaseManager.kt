@@ -63,7 +63,7 @@ object DataBaseManager {
 	private fun Statement.createGroupTable() {
 		execute(
 			"""
-			create table groups
+			create table groups 
 			(
 			    i    integer not null on conflict rollback
 			        constraint groups_pk
@@ -71,8 +71,8 @@ object DataBaseManager {
 				group_id    TEXT not null,
 			    group_name  TEXT,
 			    create_time integer,
-			    creator_id  integer not null,
-			    owner_id    integer not null
+			    creator_id  TEXT not null,
+			    owner_id    TEXT not null
 			);
 		""".trimIndent()
 		)
@@ -82,10 +82,10 @@ object DataBaseManager {
 	private fun Statement.createGroupAdminTable() {
 		execute(
 			"""
-			create table group_admin
+			create table group_admin 
 			(
-			    group_id integer not null,
-			    id       integer not null
+			    group_id TEXT not null,
+			    id       TEXT not null
 			);
 		""".trimIndent()
 		)
@@ -95,7 +95,7 @@ object DataBaseManager {
 	private fun Statement.createGroupMembersTable() {
 		execute(
 			"""
-			create table group_members
+			create table group_members 
 			(
 			    group_id      integer not null,
 			    user_id       integer not null
@@ -108,15 +108,15 @@ object DataBaseManager {
 	private fun Statement.createMessageTable() {
 		execute(
 			"""
-			create table messages
+			create table messages 
 			(
-			    i  integer not null
+			    i           integer not null
 			        constraint messages_pk
 			            primary key autoincrement,
 				message_id  TEXT not null,
-			    send_id     integer not null,
-			    receive_id  integer not null,
-			    messge_type integer,
+				type        TEXT not null,
+			    send_id     TEXT not null,
+			    to_id       TEXT not null,
 			    content     BLOB,
 			    send_time   integer
 			);

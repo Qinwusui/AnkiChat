@@ -84,7 +84,7 @@ object GroupController {
 				"""
 				select group_id,group_name,creator_id,owner_id
 				from groups
-				where group_id = (select group_id
+				where group_id in (select group_id
 				                  from group_members
 				                  where user_id = '$userId');
 			""".trimIndent()

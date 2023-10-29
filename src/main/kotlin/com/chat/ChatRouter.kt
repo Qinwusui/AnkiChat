@@ -41,7 +41,7 @@ fun Routing.chat() {
 
 					is Frame.Text -> {
 						val msgText = f.readText()
-						processMsg(msgText)
+						processMsg(userSession,msgText)
 					}
 
 					else -> {}

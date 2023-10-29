@@ -25,8 +25,15 @@ fun UserSession.online(session: DefaultWebSocketServerSession) {
 
 //服务端处理消息
 //type可能为private，group两种
-suspend fun DefaultWebSocketServerSession.processMsg(text: String) {
+suspend fun processMsg(userSession: UserSession, text: String) {
 	val message = gson.fromJson(text, Message::class.java) ?: return
+	message.sendId ?: return
+	if (message.sendId != userSession.userId) {
+		return
+	}
+	message.sendId = userSession.userId
+	//消息存储进数据库
+	ChatManager.saveMessage(message)
 	//接收Id
 	val toId = message.toId ?: return
 	//消息是群聊消息还是私聊消息
@@ -38,6 +45,7 @@ suspend fun DefaultWebSocketServerSession.processMsg(text: String) {
 
 		"group" -> {
 			//检查是否存在这个群，如果存在，那么在数据库中找到所有在这个群的用户
+			//TODO 每次都查数据库会很慢，需要换到Redis存储
 			val users = GroupController.findAllUsersByGroupId(toId)
 			users?.map {
 				UserSession(userId = it.userId, userName = it.userName, token = "")

@@ -88,9 +88,12 @@ fun Application.module() {
 	install(Sessions) {
 
 		val secretSignKey = hex("6819b57a326945c1968f45236589")
-		cookie<UserSession>("user", directorySessionStorage(File("build/.sessions"))) {
-			cookie.maxAgeInSeconds = 60 * 60 * 24
-			cookie.httpOnly = false
+//		cookie<UserSession>("user", directorySessionStorage(File("build/.sessions"))) {
+//			cookie.maxAgeInSeconds = 60 * 60 * 24
+//			cookie.httpOnly = false
+//			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
+//		}
+		header<UserSession>("Session", directorySessionStorage(File("build/.headsessions"))) {
 			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
 		}
 	}
