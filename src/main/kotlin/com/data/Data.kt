@@ -1,6 +1,7 @@
 package com.data
 
 import kotlinx.serialization.Serializable
+import kotlin.Any
 
 @Serializable
 data class UserRegisterReqData(
@@ -57,16 +58,18 @@ data class Group(
 
 
 @Serializable
-data class Message(
+data class Message<T>(
 	var sendId: String,//发送者ID
 	val toId: String,//接收者ID
-	val data: String?,//消息内容
+	val data: T,//消息内容
 	val type: String,//消息类型
 )
 
 @Serializable
-data class MessageList(
-	val messages: List<Message>
+data class MessageList<T>(
+	val success: Boolean=false,
+	val msg: String="",
+	var messages: List<Message<T>>
 )
 
 @Serializable

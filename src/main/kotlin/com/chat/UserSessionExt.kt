@@ -27,7 +27,6 @@ fun UserSession.online(session: DefaultWebSocketServerSession) {
 //type可能为private，group两种
 suspend fun processMsg(userSession: UserSession, text: String) {
 	val message = gson.fromJson(text, Message::class.java) ?: return
-	message.sendId ?: return
 	if (message.sendId != userSession.userId) {
 		return
 	}

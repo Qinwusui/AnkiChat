@@ -6,6 +6,7 @@ import com.data.GroupResData
 import com.data.UserRegisterReqData
 import com.data.UserSession
 import com.group.GroupController
+import com.message.MessageController
 import com.user.UserController
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -100,9 +101,23 @@ fun Route.searchGroup() = get("/search") {
 		return@get
 	}
 	val group = GroupController.findGroupById(id)
-	if (group==null){
+	if (group == null) {
 		call.respond(GroupListResData(success = false, msg = "没有找到该群"))
 		return@get
 	}
 	call.respond(group)
+}
+
+
+//@GET 获取某个聊天的前N条消息
+fun Route.searchChatMessage() = get("/search") {
+	val session = call.sessions.get<UserSession>()
+	val id = call.parameters["id"]
+	val type = call.parameters["type"]
+	if (session == null || id == null || type == null) {
+		call.respond(GroupResData(success = false, msg = "不正确的请求"))
+		return@get
+	}
+	val messageList = MessageController.findMessages(id, type)
+	call.respond(messageList)
 }

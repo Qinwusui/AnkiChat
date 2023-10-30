@@ -4,6 +4,7 @@ import com.chat.chat
 import com.google.gson.GsonBuilder
 import com.group.group
 import com.data.UserSession
+import com.message.message
 import com.user.user
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
@@ -76,10 +77,10 @@ fun Application.module() {
 		}
 	}
 	install(ContentNegotiation) {
-		json(Json {
-			prettyPrint = true
-			ignoreUnknownKeys = false
-		})
+//		json(Json {
+//			prettyPrint = true
+//			ignoreUnknownKeys = false
+//		})
 		gson {
 			setPrettyPrinting()
 			disableHtmlEscaping()
@@ -101,6 +102,7 @@ fun Application.module() {
 		user()
 		group()
 		chat()
+		message()
 	}
 //    install(PartialContent)
 //    loadPlugin()
