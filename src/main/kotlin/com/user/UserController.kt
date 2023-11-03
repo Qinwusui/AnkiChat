@@ -3,8 +3,17 @@ package com.user
 import com.data.UserRegisterReqData
 import com.data.UserRespData
 import com.database.DataBaseManager
+import com.database.User
+import com.database.users
 import com.utils.generateId
 import io.ktor.util.*
+import org.ktorm.dsl.and
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.or
+import org.ktorm.entity.add
+import org.ktorm.entity.count
+import org.ktorm.entity.filter
+import org.ktorm.entity.find
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -38,28 +47,13 @@ object UserController {
 
 	private fun logOut(userRegisterReqData: UserRegisterReqData): UserRespData {
 		if (!userExist(userRegisterReqData.userName)) return UserRespData(success = false, msg = "没有这个用户")
-		DataBaseManager.useStatement {
-			executeUpdate(
-				"""
-				update user
-				set last_online_time = '${System.currentTimeMillis()}'
-				where user_name = '${userRegisterReqData.userName}'
-				and 1=1;
-			""".trimIndent()
-			)
-		}
+
 		return UserRespData(success = true, msg = "退出账号成功")
 	}
 
 	//检查用户是否存在 可以通过用户名和id同时查找
 	fun userExist(userName: String): Boolean {
-		var sum = 0
-		DataBaseManager.useStatement(isSelect = true) {
-			val set = executeQuery("select count() from user where user_name='$userName' or user_id='$userName'")
-			sum = set.getInt("count()")
-		}
-		return sum == 1
-
+		return DataBaseManager.db.users.filter { (it.name eq userName) or (it.id eq userName) }.count() == 1
 	}
 
 	//登录
@@ -67,23 +61,13 @@ object UserController {
 		//若用户不存在，则走注册流程
 		if (!userExist(userRegisterReqData.userName)) return register(userRegisterReqData)
 		val token = userRegisterReqData.pwd.generateToken()
-		var i = 0
-		var userId = ""
-		DataBaseManager.useStatement(isSelect = true) {
-			val set =
-				executeQuery(
-					"""
-					select count(),user_id from user
-					 where (user_id='${userRegisterReqData.userName}' and pwd='${userRegisterReqData.pwd}') 
-					 or (user_name='${userRegisterReqData.userName}' and pwd='${token}')
-				""".trimIndent()
-				)
-			i = set.getInt("count()")
-			userId = set.getString("user_id")
-		}
-		return if (i == 1) {
-			UserRespData(userId = userId, token = token, success = true, msg = "登录成功")
+		val b = DataBaseManager.db.users.find { (it.name eq userRegisterReqData.userName) and (it.pwd eq token) }
+		return if (b != null) {
+			b.lastOnlineTime = System.currentTimeMillis()
+			b.flushChanges()
+			UserRespData(userId = b.userId, token = token, success = true, msg = "登录成功")
 		} else {
+
 			UserRespData(success = false, msg = "登录失败，用户名或密码错误")
 		}
 	}
@@ -94,23 +78,16 @@ object UserController {
 		if (userExist(userRegisterReqData.userName)) return UserRespData(success = false, msg = "用户已存在")
 		val id = generateId()
 		val token = userRegisterReqData.pwd.generateToken()
-		val b = DataBaseManager.usePreparedStatement(
-			sql = """
-			insert into user (user_id, user_name, pwd, reg_time, last_online_time, validate) values (?,?, ?, ?, ?, ?)
-		""".trimIndent()
-		) {
-			setString(1, id)
-			setString(2, userRegisterReqData.userName)
-			setString(3, token)
-			setInt(4, System.currentTimeMillis().toInt())
-			setInt(5, System.currentTimeMillis().toInt())
-			setInt(6, 1)
+		val user = User {
+			userId = id
+			pwd = token
+			lastOnlineTime = System.currentTimeMillis()
+			iconUrl = ""
+			userName = userRegisterReqData.userName
 		}
-		return if (b) {
-			UserRespData(userId = id, token = token, success = true, msg = "注册成功", isRegister = true)
-		} else {
-			UserRespData(success = false, msg = "注册失败", isRegister = true)
-		}
+		DataBaseManager.db.users.add(user)
+		return UserRespData(userId = id, token = token, success = true, msg = "注册成功", isRegister = true)
+
 	}
 
 	//生成Token

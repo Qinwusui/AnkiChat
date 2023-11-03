@@ -4,10 +4,10 @@ import kotlinx.serialization.Serializable
 import org.ktorm.logging.LogLevel
 import kotlin.Any
 data class DataBaseConfig(
-	val driverClassName: String,    // 驱动的类名
-	val url: String,                // jdbc url
-	val username: String,           // 用户名
-	val password: String,           // 密码
+	val driverClassName: String="com.mysql.jdbc.Driver",    // 驱动的类名
+	val url: String="jdbc:mysql://localhost:2342/chat",                // jdbc url
+	val username: String="wusui",           // 用户名
+	val password: String="Qinsansui233...",           // 密码
 	val initialSize: Int = 10,      // 默认连接数
 	val maxActive: Int = 25,        // 最大连接数
 	val maxWait: Long = 3000,       // 最大等待时间

@@ -11,11 +11,13 @@ import org.ktorm.schema.text
 
 val Database.users get() = this.sequenceOf(Users)
 
-object Users : Table<User>("user") {
-	val index = long("i").primaryKey().bindTo { it.index }
-	val id = text("user_id").bindTo { it.userId }
-	val name = text("user_name").bindTo { it.userName }
+object Users : Table<User>("users") {
+	val index = long("index").primaryKey().bindTo { it.index }
+	val id = text("id").bindTo { it.userId }
+	val name = text("name").bindTo { it.userName }
+	val pwd=text("p").bindTo { it.pwd }
 	val iconUrl = text("icon_url").bindTo { it.iconUrl }
+	val lastOnlineTime=long("last_online_time").bindTo { it.lastOnlineTime }
 }
 
 interface User : Entity<User> {
@@ -24,5 +26,7 @@ interface User : Entity<User> {
 	var index: Long
 	var userId: String
 	var userName: String
+	var pwd:String
 	var iconUrl: String
+	var lastOnlineTime:Long
 }

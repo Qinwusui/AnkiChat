@@ -1,12 +1,14 @@
 package com.database
 
+import org.ktorm.database.Database
 import org.ktorm.entity.Entity
+import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.long
 import org.ktorm.schema.text
-
-object Groups : Table<Nothing>("groups") {
+val Database.groups get() = this.sequenceOf(Groups)
+object Groups : Table<Group>("groups") {
 	val index = int("i").primaryKey()
 	val id = text("group_id")
 	val name = text("group_name")

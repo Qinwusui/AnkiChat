@@ -28,22 +28,7 @@ object GroupController {
 	private fun createGroup(groupReqData: GroupReqData): GroupResData {
 		if (!UserController.userExist(groupReqData.ownerId)) return GroupResData(success = false, msg = "用户不存在")
 		val groupId = generateId()
-		val b = DataBaseManager.usePreparedStatement(
-			sql = "insert into groups (group_id,group_name,creator_id,owner_id,create_time) values(?,?,?,?,?)"
-		) {
-			setString(1, groupId)
-			setString(2, groupReqData.groupName)
-			setString(3, groupReqData.creatorId)
-			setString(4, groupReqData.ownerId)
-			setLong(5, System.currentTimeMillis())
-		}
-		//将成员记录到群成员表中
-		val c = DataBaseManager.usePreparedStatement(
-			sql = "insert into group_members(group_id,user_id) values (?,?)"
-		) {
-			setString(1, groupId)
-			setString(2, groupReqData.ownerId)
-		}
+
 		return if (b && c) {
 			GroupResData(success = true, groupId = groupId, msg = "创建群聊成功")
 		} else {
