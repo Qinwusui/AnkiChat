@@ -1,31 +1,40 @@
 package com.database
 
+import com.alibaba.druid.pool.DruidDataSourceFactory
+import com.data.DataBaseConfig
 import com.utils.errorOut
-import java.sql.Connection
-import java.sql.DriverManager
+import org.ktorm.database.Database
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.support.mysql.MySqlDialect
 import java.sql.PreparedStatement
 import java.sql.Statement
+import java.util.*
+import javax.sql.DataSource
 
 object DataBaseManager {
-	private const val DB = "jdbc:sqlite:D:/AnkiChat/user.db"
-	private lateinit var connection: Connection
-	private lateinit var statement: Statement
+	private lateinit var db: Database
+	private lateinit var dataSource: DataSource
 
 	init {
-		runCatching {
-			Class.forName("org.sqlite.JDBC")
-			initDB()
-			createTable()
-		}.exceptionOrNull()?.let {
-			it.errorOut()
-		}
+
 
 	}
 
+	private fun initDataSource(config: DataBaseConfig) {
+		val props = Properties()
+		config.javaClass.declaredFields.forEach {
+			props[it.name] = "${it.apply { isAccessible = true }.get(config)}"
+		}
+		dataSource = DruidDataSourceFactory.createDataSource(props)
+		db = Database.connect(
+			dataSource = dataSource,
+			dialect = MySqlDialect(),
+			logger = ConsoleLogger(config.logLevel)
+		)
+	}
+
 	private fun initDB() {
-		connection = DriverManager.getConnection(DB)
-		connection.autoCommit = false
-		statement = connection.createStatement()
+
 	}
 
 	//创建所有表

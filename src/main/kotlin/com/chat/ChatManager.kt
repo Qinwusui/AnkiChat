@@ -35,7 +35,7 @@ object ChatManager {
 	}
 
 	//存储消息
-	fun <T>saveMessage(message: Message<T>): Boolean {
+	fun <T> saveMessage(message: Message<T>): Boolean {
 		if (!checkToId(message.toId)) return false
 		val json = gson.toJson(message.data)
 		val messageId = generateId()
