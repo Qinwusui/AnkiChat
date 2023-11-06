@@ -1,5 +1,6 @@
 package com.user
 
+import com.data.Results
 import com.data.UserRegisterReqData
 import com.data.UserRespData
 import com.database.DataBaseManager
@@ -24,18 +25,18 @@ object UserController {
 
 	//简单验证用户信息是否满足条件
 	//TODO 这个验证应该做两次，一次在前端，一次在后端
-	fun validateUserInfo(userRegisterReqData: UserRegisterReqData, register: UserType): UserRespData {
-		if (!userRegisterReqData.userName.isSimpleAlpha()) {
-			return UserRespData(success = false, msg = "用户名只应由0..9 a..z A..Z 组成")
+	fun validateUserInfo(userRegisterReqData: UserRegisterReqData, register: UserType): Results<*> {
+		if (!userRegisterReqData.userId.isSimpleAlpha()) {
+			return Results.failure(msg = "用户名只应由0..9 a..z A..Z 组成")
 		}
-		if (!userRegisterReqData.userName.lengthIn4To8()) {
-			return UserRespData(success = false, msg = "用户名长度应在4-8位")
+		if (!userRegisterReqData.userId.lengthIn4To8()) {
+			return Results.failure(msg = "用户名长度应在4-8位")
 		}
 		if (!userRegisterReqData.pwd.isSimpleAlpha()) {
-			return UserRespData(success = false, msg = "密码只应由0..9 a..z A..Z 组成")
+			return Results.failure(msg = "密码只应由0..9 a..z A..Z 组成")
 		}
 		if (!userRegisterReqData.pwd.lengthIn8To12()) {
-			return UserRespData(success = false, msg = "密码长度应在8-12位")
+			return Results.failure(msg = "密码长度应在8-12位")
 		}
 
 		return when (register) {
@@ -45,10 +46,14 @@ object UserController {
 		}
 	}
 
-	private fun logOut(userRegisterReqData: UserRegisterReqData): UserRespData {
-		if (!userExist(userRegisterReqData.userName)) return UserRespData(success = false, msg = "没有这个用户")
-
-		return UserRespData(success = true, msg = "退出账号成功")
+	private fun logOut(userRegisterReqData: UserRegisterReqData): Results<*> {
+		if (!userExist(userRegisterReqData.userId)) return Results.failure(msg = "没有这个用户")
+		val user = DataBaseManager.db.users.find { it.id eq userRegisterReqData.userId }
+		user?.apply {
+			lastOnlineTime = System.currentTimeMillis()
+			flushChanges()
+		}
+		return Results.success(msg = "退出账号成功")
 	}
 
 	//检查用户是否存在 可以通过用户名和id同时查找
@@ -57,25 +62,25 @@ object UserController {
 	}
 
 	//登录
-	private fun login(userRegisterReqData: UserRegisterReqData): UserRespData {
+	private fun login(userRegisterReqData: UserRegisterReqData): Results<*> {
 		//若用户不存在，则走注册流程
-		if (!userExist(userRegisterReqData.userName)) return register(userRegisterReqData)
+		if (!userExist(userRegisterReqData.userId)) return register(userRegisterReqData)
 		val token = userRegisterReqData.pwd.generateToken()
-		val b = DataBaseManager.db.users.find { (it.name eq userRegisterReqData.userName) and (it.pwd eq token) }
+		val b = DataBaseManager.db.users.find { (it.name eq userRegisterReqData.userId) and (it.pwd eq token) }
 		return if (b != null) {
 			b.lastOnlineTime = System.currentTimeMillis()
 			b.flushChanges()
-			UserRespData(userId = b.userId, token = token, success = true, msg = "登录成功")
+			Results.success( msg = "登录成功", data = token)
 		} else {
 
-			UserRespData(success = false, msg = "登录失败，用户名或密码错误")
+			Results.failure(msg = "登录失败，用户名或密码错误")
 		}
 	}
 
 	//注册操作
-	private fun register(userRegisterReqData: UserRegisterReqData): UserRespData {
+	private fun register(userRegisterReqData: UserRegisterReqData): Results<*> {
 		//用户存在时，注册失败
-		if (userExist(userRegisterReqData.userName)) return UserRespData(success = false, msg = "用户已存在")
+		if (userExist(userRegisterReqData.userId)) return Results.failure(msg = "用户已存在")
 		val id = generateId()
 		val token = userRegisterReqData.pwd.generateToken()
 		val user = User {
@@ -83,10 +88,10 @@ object UserController {
 			pwd = token
 			lastOnlineTime = System.currentTimeMillis()
 			iconUrl = ""
-			userName = userRegisterReqData.userName
+			userName = userRegisterReqData.userId
 		}
 		DataBaseManager.db.users.add(user)
-		return UserRespData(userId = id, token = token, success = true, msg = "注册成功", isRegister = true)
+		return Results.success("注册成功", data = token)
 
 	}
 

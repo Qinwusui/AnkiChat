@@ -41,7 +41,7 @@ dependencies {
 	implementation("ch.qos.logback:logback-classic:$logback_version")
 	implementation("io.ktor:ktor-client-core-jvm:2.1.3")
 	implementation("io.ktor:ktor-server-partial-content:$ktor_version")
-
+	implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 	testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
 	implementation("io.ktor:ktor-server-compression:$ktor_version")
 
@@ -53,6 +53,8 @@ dependencies {
 
 	//Database
 	implementation("org.ktorm:ktorm-core:${ktorm_version}")
+	implementation("org.ktorm:ktorm-jackson:$ktorm_version")
+
 	implementation("com.alibaba:druid:1.2.18")
 	implementation("mysql:mysql-connector-java:8.0.33")
 	implementation("org.ktorm:ktorm-support-mysql:${ktorm_version}")

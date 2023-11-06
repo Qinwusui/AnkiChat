@@ -1,8 +1,7 @@
 package com.ext
 
-import com.data.GroupListResData
 import com.data.GroupReqData
-import com.data.GroupResData
+import com.data.Results
 import com.data.UserRegisterReqData
 import com.data.UserSession
 import com.group.GroupController
@@ -13,19 +12,22 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import io.ktor.util.pipeline.*
+
+inline var PipelineContext<*, ApplicationCall>.userSession: UserSession?
+	get() = context.sessions.get()
+	set(value) = context.sessions.set(value)
 
 //@POST login扩展函数
 fun Route.login() = post(path = "/login") {
 	val user = call.receive<UserRegisterReqData>()
 	val userRegisterRespData = UserController.validateUserInfo(user, UserController.UserType.Login)
-	if (userRegisterRespData.success) {
-		call.sessions.set(
-			UserSession(
-				userId = userRegisterRespData.userId,
-				token = userRegisterRespData.token,
-				userName = user.userName
-			)
+	if (userRegisterRespData.code == 200) {
+		userSession = UserSession(
+			userId = user.userId,
+			token = userRegisterRespData.data as? String? ?: ""
 		)
+
 	}
 	call.respond(userRegisterRespData)
 }
@@ -46,8 +48,8 @@ fun Route.logout() = post("/logout") {
 
 //@GET getFriends获取好友列表扩展函数
 fun Route.getFriends() = get(path = "{id}/friends") {
-	val session = call.sessions.get<UserSession>()
-	if (session == null) {
+
+	if (userSession == null) {
 		return@get
 	}
 	val userId = call.parameters["id"] ?: return@get
@@ -55,9 +57,8 @@ fun Route.getFriends() = get(path = "{id}/friends") {
 
 //@POST createGroup 创建群聊
 fun Route.createGroup() = post("/create") {
-	val session = call.sessions.get<UserSession>()
-	if (session == null) {
-		call.respond(GroupResData(success = false, msg = "不正确的请求"))
+	if (userSession == null) {
+		call.respond(Results.failure())
 		return@post
 	}
 	val groupReqData = call.receive<GroupReqData>()
@@ -67,42 +68,39 @@ fun Route.createGroup() = post("/create") {
 
 //@GET groupList 拿到所有自己是群主的群聊
 fun Route.ownerGroup() = get("/owner") {
-	val session = call.sessions.get<UserSession>()
-	if (session == null) {
-		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+	if (userSession == null) {
+		call.respond(Results.failure())
 		return@get
 	}
-	val groupList = GroupController.getUserOwnerGroup(session.userId)
+	val groupList = GroupController.getUserOwnerGroup(userSession!!.userId)
 	call.respond(groupList)
 }
 
 //@GET groupList 拿到所有群聊
 fun Route.joinedGroup() = get("/joined") {
-	val session = call.sessions.get<UserSession>()
-	if (session == null) {
-		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+	if (userSession == null) {
+		call.respond(Results.failure())
 		return@get
 	}
-	val groupList = GroupController.getJoinedGroup(session.userId)
+	val groupList = GroupController.getJoinedGroup(userSession!!.userId)
 	call.respond(groupList)
 }
 
 //@GET groupList 搜索群聊
 //id 群id
 fun Route.searchGroup() = get("/search") {
-	val session = call.sessions.get<UserSession>()
-	if (session == null) {
-		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+	if (userSession == null) {
+		call.respond(Results.failure())
 		return@get
 	}
 	val id = call.request.queryParameters["id"]
 	if (id == null) {
-		call.respond(GroupListResData(success = false, msg = "不正确的请求"))
+		call.respond(Results.failure())
 		return@get
 	}
 	val group = GroupController.findGroupById(id)
 	if (group == null) {
-		call.respond(GroupListResData(success = false, msg = "没有找到该群"))
+		call.respond(Results.failure("没有找到该群"))
 		return@get
 	}
 	call.respond(group)
@@ -111,13 +109,31 @@ fun Route.searchGroup() = get("/search") {
 
 //@GET 获取某个聊天的前N条消息
 fun Route.searchChatMessage() = get("/search") {
-	val session = call.sessions.get<UserSession>()
 	val id = call.parameters["id"]
 	val type = call.parameters["type"]
-	if (session == null || id == null || type == null) {
-		call.respond(GroupResData(success = false, msg = "不正确的请求"))
+	if (userSession == null || id == null || type == null) {
+		call.respond(Results.failure())
 		return@get
 	}
 	val messageList = MessageController.findMessages(id, type)
 	call.respond(messageList)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,13 +1,24 @@
 package com.group
 
-import com.database.DataBaseManager
-import com.data.Group
-import com.data.GroupListResData
 import com.data.GroupReqData
 import com.data.GroupResData
-import com.data.User
+import com.database.DataBaseManager
+import com.database.Group
+import com.database.GroupAdmin
+import com.database.GroupMember
+import com.database.groupAdmins
+import com.database.groupMembers
+import com.database.groups
 import com.user.UserController
 import com.utils.generateId
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.inList
+import org.ktorm.entity.add
+import org.ktorm.entity.filter
+import org.ktorm.entity.find
+import org.ktorm.entity.forEach
+import org.ktorm.entity.isNotEmpty
+import org.ktorm.entity.map
 
 object GroupController {
 	//验证群聊
@@ -27,118 +38,87 @@ object GroupController {
 	//创建群聊
 	private fun createGroup(groupReqData: GroupReqData): GroupResData {
 		if (!UserController.userExist(groupReqData.ownerId)) return GroupResData(success = false, msg = "用户不存在")
-		val groupId = generateId()
+		val id = generateId()
+		DataBaseManager.db.groups.add(com.database.Group {
+			groupId = id
+			creatorId = groupReqData.creatorId
+			ownerId = groupReqData.ownerId
+			groupName = groupReqData.groupName
+			createTime = System.currentTimeMillis()
+		})
+		DataBaseManager.db.groupAdmins.add(GroupAdmin {
+			groupId = id
+			userId = groupReqData.creatorId
+		})
+		DataBaseManager.db.groupMembers.add(GroupMember {
+			groupId = id
+			userId = groupReqData.creatorId
+		})
+		return GroupResData(success = true, groupId = id, msg = "创建群聊成功")
 
-		return if (b && c) {
-			GroupResData(success = true, groupId = groupId, msg = "创建群聊成功")
-		} else {
-			GroupResData(success = false, msg = "创建群聊失败")
-		}
 	}
 
 	//获取用户id所拥有的群聊
-	fun getUserOwnerGroup(userId: String): GroupListResData {
-		if (!UserController.userExist(userId)) return GroupListResData(success = false, msg = "没有这个用户")
-		var groupList: MutableList<Group> = mutableListOf()
-		DataBaseManager.useStatement(isSelect = true) {
-			val list = mutableListOf<Group>()
-			val set = executeQuery("select * from groups where owner_id ='$userId'")
-			while (set.next()) {
-				list.add(
-					Group(
-						groupId = set.getString("group_id"),
-						groupName = set.getString("group_name"),
-						ownerId = set.getString("owner_id"),
-						creatorId = set.getString("creator_id")
-					)
-				)
-			}
-			groupList = list
+	fun getUserOwnerGroup(userId: String): Map<String, Any> {
+		if (!UserController.userExist(userId)) return mapOf("success" to false, "msg" to "没有这个用户")
+		val groupList = mutableListOf<Group>()
+		DataBaseManager.db.groups.filter { it.ownerId eq userId }.forEach {
+			groupList.add(it)
 		}
-		return GroupListResData(success = true, msg = "获取群组成功", list = groupList)
+		return mapOf("success" to true, "msg" to "获取群组成功", "list" to groupList)
 
 	}
 
 	//获取用户id所加入的群聊
-	fun getJoinedGroup(userId: String): GroupListResData {
-		if (!UserController.userExist(userId)) return GroupListResData(success = false, msg = "没有这个用户")
-		var groupList: MutableList<Group> = mutableListOf()
-		DataBaseManager.useStatement(isSelect = true) {
-			val list = mutableListOf<Group>()
-			val set = executeQuery(
-				"""
-				select group_id,group_name,creator_id,owner_id
-				from groups
-				where group_id in (select group_id
-				                  from group_members
-				                  where user_id = '$userId');
-			""".trimIndent()
-			)
-			while (set.next()) {
-				list.add(
-					Group(
-						groupId = set.getString("group_id"),
-						groupName = set.getString("group_name"),
-						ownerId = set.getString("owner_id"),
-						creatorId = set.getString("creator_id")
-					)
-				)
-			}
-			groupList = list
+	fun getJoinedGroup(userId: String): Map<String, Any> {
+		if (!UserController.userExist(userId)) return mapOf("success" to false, "msg" to "没有这个用户")
+		val groupList = mutableListOf<Group>()
+		val groupIds = DataBaseManager.db.groupMembers.filter { it.userId eq userId }.map { it.groupId }
+		DataBaseManager.db.groups.filter { it.id inList groupIds }.forEach {
+			groupList.add(it)
 		}
-		return GroupListResData(success = true, msg = "获取群组成功", list = groupList)
+		return mapOf("success" to true, "msg" to "获取群组成功", "list" to groupList)
 
 	}
 
 	//检查id对应的群聊是否存在
 	private fun groupExist(groupId: String): Boolean {
-		var sum = 0
-		DataBaseManager.useStatement(isSelect = true) {
-			val set = executeQuery("select count() from groups where group_name='$groupId' or group_id='$groupId'")
-			sum = set.getInt("count()")
-		}
-		return sum == 1
+		return DataBaseManager.db.groups.filter { it.id eq groupId }.isNotEmpty()
 	}
 
 	//通过id查找群聊
 	fun findGroupById(groupId: String): Group? {
 		if (!groupExist(groupId)) return null
-		var group: Group? = null
-		DataBaseManager.useStatement(isSelect = true) {
-			val set = executeQuery("select * from groups where group_id='$groupId'")
-			group = Group(
-				groupId = set.getString("group_id"),
-				groupName = set.getString("group_name"),
-				ownerId = set.getString("owner_id"),
-				creatorId = set.getString("creator_id")
-			)
-		}
-		return group
+		return DataBaseManager.db.groups.find { it.id eq groupId }
 	}
 
 	//查找某个群的所有群成员
-	fun findAllUsersByGroupId(groupId: String): List<User>? {
-		if (!groupExist(groupId)) return null
-		val userList = mutableListOf<User>()
-		DataBaseManager.useStatement(isSelect = true) {
-			val set = executeQuery(
-				"""
-				select user_id, user_name, reg_time, last_online_time, validate
-				from user
-				where user_id in (select user_id from group_members where group_id = '$groupId')
-			""".trimIndent()
-			)
-			while (set.next()) {
-				val user = User(
-					userName = set.getString("user_name"),
-					userId = set.getString("user_id"),
-					registerTime = set.getLong("reg_time"),
-					onlineTime = set.getLong("last_online_time"),
-					validate = set.getInt("validate")
-				)
-				userList.add(user)
-			}
+	fun findAllUsersByGroupId(groupId: String): List<GroupMember> {
+		if (!groupExist(groupId)) return emptyList()
+		val users = mutableListOf<GroupMember>()
+		DataBaseManager.db.groupMembers.filter { it.groupId eq groupId }.forEach {
+			users.add(it)
 		}
-		return userList
+		return users
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

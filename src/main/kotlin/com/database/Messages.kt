@@ -7,7 +7,7 @@ import org.ktorm.schema.Column
 import org.ktorm.schema.Table
 import org.ktorm.schema.long
 import org.ktorm.schema.text
-val Database.members get() = this.sequenceOf(Messages)
+val Database.messages get() = this.sequenceOf(Messages)
 object Messages : Table<Message>("messages") {
 	val index = long("index").primaryKey().bindTo { it.index }
 	val messageId = text("message_id").bindTo { it.messageId }
