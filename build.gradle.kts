@@ -6,9 +6,9 @@ val h2_version: String by project
 val ktorm_version :String by project
 plugins {
 	application
-	kotlin("jvm") version "1.9.10"
+	kotlin("jvm") version "1.9.20"
 	id("io.ktor.plugin") version "2.3.5"
-	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
 }
 
 group = "com"
@@ -46,14 +46,14 @@ dependencies {
 	implementation("io.ktor:ktor-server-compression:$ktor_version")
 
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-	implementation("org.xerial:sqlite-jdbc:3.40.0.0")
-	implementation("redis.clients:jedis:4.3.1")
+	implementation("redis.clients:jedis:5.0.2")
 
 	implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
 
 	//Database
 	implementation("org.ktorm:ktorm-core:${ktorm_version}")
 	implementation("org.ktorm:ktorm-jackson:$ktorm_version")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")
 
 	implementation("com.alibaba:druid:1.2.18")
 	implementation("mysql:mysql-connector-java:8.0.33")

@@ -2,13 +2,12 @@ package com
 
 import com.chat.chat
 import com.config.JacksonConfig.config
+import com.data.UserSession
+import com.database.DataBaseManager
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.friends.friends
 import com.google.gson.GsonBuilder
 import com.group.group
-import com.data.UserSession
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.message.message
 import com.user.user
 import io.ktor.http.*
@@ -65,6 +64,7 @@ fun main() {
 
 	}).start(wait = true)
 }
+
 inline fun <reified T : Any> generateSerializer(
 	localDatePattern: String, localTimePattern: String, localDateTimePattern: String
 ): SessionSerializer<T> = object : SessionSerializer<T> {
@@ -98,6 +98,10 @@ fun Application.module() {
 		jackson {
 			config("yyyy-MM-dd", "hh:mm:ss", "yyyy-MM-dd hh:mm:ss")
 		}
+//		json(Json {
+//			prettyPrint = true
+//			ignoreUnknownKeys = true
+//		})
 //		gson {
 //			setPrettyPrinting()
 //			disableHtmlEscaping()
@@ -112,8 +116,6 @@ fun Application.module() {
 //			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
 //		}
 		header<UserSession>("Session", directorySessionStorage(File("build/.headsessions"))) {
-			serializer = generateSerializer("yyyy-MM-dd", "hh:mm:ss", "yyyy-MM-dd hh:mm:ss")
-
 			transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
 		}
 	}
@@ -137,6 +139,7 @@ fun Application.module() {
 		group()
 		chat()
 		message()
+		friends()
 	}
 //    install(PartialContent)
 //    loadPlugin()

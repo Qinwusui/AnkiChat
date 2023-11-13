@@ -1,12 +1,16 @@
 package com.ext
 
+import com.data.ApplyData
 import com.data.GroupReqData
 import com.data.Results
 import com.data.UserRegisterReqData
 import com.data.UserSession
+import com.friends.Apply
+import com.friends.FriendsController
 import com.group.GroupController
 import com.message.MessageController
 import com.user.UserController
+import com.utils.generateId
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -18,15 +22,22 @@ inline var PipelineContext<*, ApplicationCall>.userSession: UserSession?
 	get() = context.sessions.get()
 	set(value) = context.sessions.set(value)
 
-//@POST login扩展函数
+//@POST 登录
 fun Route.login() = post(path = "/login") {
 	val user = call.receive<UserRegisterReqData>()
 	val userRegisterRespData = UserController.validateUserInfo(user, UserController.UserType.Login)
 	if (userRegisterRespData.code == 200) {
-		userSession = UserSession(
-			userId = user.userId,
-			token = userRegisterRespData.data as? String? ?: ""
-		)
+		runCatching {
+			userRegisterRespData.data as Pair<*, *>
+		}.onFailure {
+			call.respond(Results.failure("获取用户id失败:${it.message}"))
+		}.onSuccess {
+			val (id, token) = it
+			userSession = UserSession(
+				userId = id as? String? ?: "",
+				token = token as? String? ?: ""
+			)
+		}
 
 	}
 	call.respond(userRegisterRespData)
@@ -40,6 +51,7 @@ fun Route.register() = post("/register") {
 	call.respond(userRegisterRespData)
 }
 
+//退出登录
 fun Route.logout() = post("/logout") {
 	val user = call.receive<UserRegisterReqData>()
 	val userRespData = UserController.validateUserInfo(user, UserController.UserType.Logout)
@@ -47,18 +59,23 @@ fun Route.logout() = post("/logout") {
 }
 
 //@GET getFriends获取好友列表扩展函数
-fun Route.getFriends() = get(path = "{id}/friends") {
+fun Route.getFriends() = get(path = "/{id}/friends") {
 
 	if (userSession == null) {
+		call.respond(Results.failure(msg = "用户信息不正确"))
+
 		return@get
 	}
 	val userId = call.parameters["id"] ?: return@get
+	val friends = FriendsController.findFriendsById(userId)
+	call.respond(friends)
 }
 
 //@POST createGroup 创建群聊
 fun Route.createGroup() = post("/create") {
+
 	if (userSession == null) {
-		call.respond(Results.failure())
+		call.respond(Results.failure(msg = "用户信息不正确"))
 		return@post
 	}
 	val groupReqData = call.receive<GroupReqData>()
@@ -99,10 +116,6 @@ fun Route.searchGroup() = get("/search") {
 		return@get
 	}
 	val group = GroupController.findGroupById(id)
-	if (group == null) {
-		call.respond(Results.failure("没有找到该群"))
-		return@get
-	}
 	call.respond(group)
 }
 
@@ -110,7 +123,7 @@ fun Route.searchGroup() = get("/search") {
 //@GET 获取某个聊天的前N条消息
 fun Route.searchChatMessage() = get("/search") {
 	val id = call.parameters["id"]
-	val type = call.parameters["type"]
+	val type = call.parameters["type"]//消息是私聊还是群聊
 	if (userSession == null || id == null || type == null) {
 		call.respond(Results.failure())
 		return@get
@@ -119,8 +132,66 @@ fun Route.searchChatMessage() = get("/search") {
 	call.respond(messageList)
 }
 
+//@GET 获取某用户收到的所有好友申请记录
+fun Route.getAllApplies() = get("/applies") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户信息缺失"))
+		return@get
+	}
+	val userId = userSession!!.userId
+	val applies = FriendsController.getAllApplies(userId)
+	call.respond(applies)
+}
 
+//@Post 发送好友申请
+fun Route.sendFriendApply() = post("/send") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户信息缺失"))
+		return@post
+	}
+	val applyData = call.receive<ApplyData>()
+	val apply = Apply {
+		sendId = applyData.sendId
+		receiveId = applyData.receiveId
+		sendTime = System.currentTimeMillis()
+		applyId = generateId()
+		applyMessage = applyData.applyMessage
+	}
 
+	val status = FriendsController.sendAddApply(apply)
+	call.respond(status)
+}
+
+//@Post 同意好友申请
+fun Route.agreeFriendApply() = post("/agree") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户信息缺失"))
+		return@post
+	}
+	val apply = call.receive<Apply>()
+	if (apply.applyId.isEmpty()) {
+		call.respond(Results.failure("申请信息为空"))
+		return@post
+	}
+	val results = FriendsController.agreeApply(apply.applyId)
+
+	call.respond(results)
+}
+
+//@Post 拒绝好友申请
+fun Route.refuseFriendApply() = post("/refuse") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户信息缺失"))
+		return@post
+	}
+	val apply = call.receive<Apply>()
+	if (apply.applyId.isEmpty()) {
+		call.respond(Results.failure("申请信息为空"))
+		return@post
+	}
+	val results = FriendsController.refuseApply(applyId = apply.applyId)
+	call.respond(results)
+}
 
 
 

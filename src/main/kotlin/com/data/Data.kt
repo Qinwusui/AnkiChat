@@ -1,10 +1,11 @@
 package com.data
 
+import com.database.Message
 import kotlinx.serialization.Serializable
 import org.ktorm.logging.LogLevel
 
 data class DataBaseConfig(
-	val driverClassName: String = "com.mysql.jdbc.Driver",    // 驱动的类名
+	val driverClassName: String = "com.mysql.cj.jdbc.Driver",    // 驱动的类名
 	val url: String = "jdbc:mysql://localhost:2342/chat",                // jdbc url
 	val username: String = "wusui",           // 用户名
 	val password: String = "Qinsansui233...",           // 密码
@@ -14,7 +15,8 @@ data class DataBaseConfig(
 	val logLevel: LogLevel = LogLevel.DEBUG // 输出的日志级别
 )
 
-data class Results<T>(val code: Int, val msg: String, val data: T?=null) {
+@Serializable
+data class Results<T>(val code: Int, val msg: String, val data: T? = null) {
 	companion object {
 		fun success(): Results<*> = Results(200, "操作成功", null)
 		fun success(msg: String) = Results(200, msg, null)
@@ -28,18 +30,10 @@ data class Results<T>(val code: Int, val msg: String, val data: T?=null) {
 
 @Serializable
 data class UserRegisterReqData(
-	val userId: String,
+	val userName: String,
 	val pwd: String,
 )
 
-@Serializable
-data class UserRespData(
-	val userId: String = "",
-	val token: String = "",
-	val msg: String = "",
-	val success: Boolean,
-	val isRegister: Boolean = false,
-)
 
 @Serializable
 data class UserSession(
@@ -55,33 +49,17 @@ data class GroupReqData(
 	val ownerId: String,
 )
 
-@Serializable
-data class GroupResData(
-	val groupId: String = "",
-	val success: Boolean = false,
-	val msg: String = ""
-)
 
 @Serializable
-data class Message<T>(
-	var sendId: String,//发送者ID
-	val toId: String,//接收者ID
-	val data: T,//消息内容
-	val type: String,//消息类型
-)
-
-@Serializable
-data class MessageList<T>(
+data class MessageList(
 	val success: Boolean = false,
 	val msg: String = "",
-	var messages: List<Message<T>>
+	var messages: List<Message>
 )
 
 @Serializable
-data class User(
-	val userName: String,
-	val userId: String,
-	val validate: Int,
-	val registerTime: Long,
-	val onlineTime: Long
+data class ApplyData(
+	val sendId: String,
+	val receiveId: String,
+	val applyMessage: String
 )

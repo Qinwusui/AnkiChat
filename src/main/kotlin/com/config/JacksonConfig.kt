@@ -18,15 +18,25 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 object JacksonConfig {
-	fun ObjectMapper.config(localDatePattern: String, localTimePattern: String, localDateTimePattern: String): ObjectMapper {
+	fun ObjectMapper.config(
+		localDatePattern: String,
+		localTimePattern: String,
+		localDateTimePattern: String
+	): ObjectMapper {
 		registerModule(KtormModule())
 		registerModule(JavaTimeModule().apply {
 			addDeserializer(LocalDate::class.java, LocalDateDeserializer(DateTimeFormatter.ofPattern(localDatePattern)))
 			addSerializer(LocalDate::class.java, LocalDateSerializer(DateTimeFormatter.ofPattern(localDatePattern)))
 			addDeserializer(LocalTime::class.java, LocalTimeDeserializer(DateTimeFormatter.ofPattern(localTimePattern)))
 			addSerializer(LocalTime::class.java, LocalTimeSerializer(DateTimeFormatter.ofPattern(localTimePattern)))
-			addDeserializer(LocalDateTime::class.java, LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(localDateTimePattern)))
-			addSerializer(LocalDateTime::class.java, LocalDateTimeSerializer(DateTimeFormatter.ofPattern(localDateTimePattern)))
+			addDeserializer(
+				LocalDateTime::class.java,
+				LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(localDateTimePattern))
+			)
+			addSerializer(
+				LocalDateTime::class.java,
+				LocalDateTimeSerializer(DateTimeFormatter.ofPattern(localDateTimePattern))
+			)
 		})
 		configure(SerializationFeature.INDENT_OUTPUT, true)
 		setDefaultLeniency(true)

@@ -1,54 +1,50 @@
 package com.message
 
 import com.chat.ChatManager
-import com.data.Message
 import com.data.MessageList
+import com.data.Results
 import com.database.DataBaseManager
+import com.database.messages
+import org.ktorm.dsl.and
+import org.ktorm.dsl.eq
+import org.ktorm.entity.filter
+import org.ktorm.entity.map
 
 object MessageController {
-	suspend fun findMessages(id: String, type: String): MessageList<Any> {
-		var messageList = MessageList<Any>(messages = listOf())
-		if (!ChatManager.checkToId(id)) return messageList
+	suspend fun findMessages(id: String, type: String): Results<*> {
+		if (!ChatManager.checkToId(id)) return Results.failure("id不存在")
 
-		when (type) {
+		val result = when (type) {
 			"group" -> {
-				messageList = findGroupMessages(id)
+				Results.success(data = findGroupMessages(id))
 			}
 
 			"private" -> {
-
+				Results.success(data = findPrivateMessages(id))
 			}
+
+			else -> Results.failure("消息类型不存在")
 		}
 
+		return result
+	}
+
+	suspend fun findGroupMessages(id: String): MessageList {
+		val messageList = suspend {
+			val messages =
+				DataBaseManager.db.messages.filter { (it.messageType eq "group") and (it.toId eq id) }.map { it }
+			MessageList(success = true, messages = messages)
+		}()
 		return messageList
 	}
 
-	suspend fun findGroupMessages(id: String): MessageList<Any> {
-		val messageList = suspend {
-			var messageList: MessageList<Any> = MessageList(messages = listOf())
-			DataBaseManager.useStatement {
-				val set = executeQuery(
-					"""
-				select * from messages where type='group' and to_id='$id' 
-			""".trimIndent()
-				)
-				val list = mutableListOf<Message<Any>>()
-				while (set.next()) {
-					val blob = set.getString("content")
-					list.add(
-						Message(
-							sendId = set.getString("send_id"),
-							toId = set.getString("to_id"),
-							type = set.getString("type"),
-							data = blob
-						)
-					)
-				}
-
-				messageList = MessageList(success = true, messages = list)
-			}
-			messageList
+	suspend fun findPrivateMessages(id: String): MessageList {
+		return suspend {
+			MessageList(
+				success = true,
+				messages = DataBaseManager.db.messages
+					.filter { (it.toId eq id) and (it.messageType eq "private") }
+					.map { it })
 		}()
-		return messageList
 	}
 }

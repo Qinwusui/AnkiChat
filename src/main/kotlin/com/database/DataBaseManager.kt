@@ -2,12 +2,9 @@ package com.database
 
 import com.alibaba.druid.pool.DruidDataSourceFactory
 import com.data.DataBaseConfig
-import com.utils.errorOut
 import org.ktorm.database.Database
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.support.mysql.MySqlDialect
-import java.sql.PreparedStatement
-import java.sql.Statement
 import java.util.*
 import javax.sql.DataSource
 

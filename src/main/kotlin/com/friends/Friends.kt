@@ -1,25 +1,26 @@
-package com.database
+package com.friends
 
+import com.database.User
+import com.database.Users
 import org.ktorm.database.Database
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
-import org.ktorm.schema.long
 import org.ktorm.schema.text
 
-val Database.groupAdmins get() = this.sequenceOf(GroupAdmins)
+val Database.friends get() = this.sequenceOf(Friends)
 
-object GroupAdmins : Table<GroupAdmin>("group_admins") {
+object Friends : Table<Friend>("friends") {
 	val index = int("index").primaryKey().bindTo { it.index }
-	val groupId = text("group_id").bindTo { it.groupId }
 	val userId = text("user_id").bindTo { it.userId }
+	val friendId = text("friend_id").bindTo { it.friendId }
 }
 
-interface GroupAdmin : Entity<GroupAdmin> {
-	companion object : Entity.Factory<GroupAdmin>()
+interface Friend : Entity<Friend> {
+	companion object : Entity.Factory<Friend>()
 
 	var index: Int
-	var groupId: String
+	var friendId: String
 	var userId: String
 }
