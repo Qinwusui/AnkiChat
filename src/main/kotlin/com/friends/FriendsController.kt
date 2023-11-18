@@ -1,7 +1,11 @@
 package com.friends
 
 import com.data.Results
+import com.database.Apply
 import com.database.DataBaseManager
+import com.database.Friend
+import com.database.applies
+import com.database.friends
 import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
 import org.ktorm.entity.add

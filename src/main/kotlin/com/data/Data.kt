@@ -6,9 +6,9 @@ import org.ktorm.logging.LogLevel
 
 data class DataBaseConfig(
 	val driverClassName: String = "com.mysql.cj.jdbc.Driver",    // 驱动的类名
-	val url: String = "jdbc:mysql://localhost:2342/chat",                // jdbc url
-	val username: String = "wusui",           // 用户名
-	val password: String = "Qinsansui233...",           // 密码
+	val url: String = "jdbc:mysql://192.168.1.34:3306/chat",                // jdbc url
+	val username: String = "root",           // 用户名
+	val password: String = "123456",           // 密码
 	val initialSize: Int = 10,      // 默认连接数
 	val maxActive: Int = 25,        // 最大连接数
 	val maxWait: Long = 3000,       // 最大等待时间

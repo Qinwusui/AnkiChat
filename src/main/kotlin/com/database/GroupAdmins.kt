@@ -5,15 +5,14 @@ import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
-import org.ktorm.schema.long
-import org.ktorm.schema.text
+import org.ktorm.schema.varchar
 
 val Database.groupAdmins get() = this.sequenceOf(GroupAdmins)
 
 object GroupAdmins : Table<GroupAdmin>("group_admins") {
 	val index = int("index").primaryKey().bindTo { it.index }
-	val groupId = text("group_id").bindTo { it.groupId }
-	val userId = text("user_id").bindTo { it.userId }
+	val groupId = varchar("group_id").bindTo { it.groupId }.references(Groups) { it.group }
+	val userId = varchar("user_id").bindTo { it.userId }.references(Users) { it.user }
 }
 
 interface GroupAdmin : Entity<GroupAdmin> {
@@ -22,4 +21,6 @@ interface GroupAdmin : Entity<GroupAdmin> {
 	var index: Int
 	var groupId: String
 	var userId: String
+	var group: Group
+	var user: User
 }

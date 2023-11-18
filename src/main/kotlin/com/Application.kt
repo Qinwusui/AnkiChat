@@ -3,7 +3,6 @@ package com
 import com.chat.chat
 import com.config.JacksonConfig.config
 import com.data.UserSession
-import com.database.DataBaseManager
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.friends.friends
 import com.google.gson.GsonBuilder
@@ -13,7 +12,6 @@ import com.user.user
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import io.ktor.serialization.jackson.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -24,7 +22,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
-import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.security.KeyStore
@@ -81,9 +78,7 @@ fun Application.module() {
 		pingPeriod = Duration.ofSeconds(15)
 		timeout = Duration.ofSeconds(15)
 
-		contentConverter = GsonWebsocketContentConverter(
-			gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
-		)
+		contentConverter = JacksonWebsocketContentConverter()
 	}
 	install(Compression) {
 		gzip {

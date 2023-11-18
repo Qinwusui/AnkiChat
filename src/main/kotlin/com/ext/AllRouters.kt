@@ -5,7 +5,7 @@ import com.data.GroupReqData
 import com.data.Results
 import com.data.UserRegisterReqData
 import com.data.UserSession
-import com.friends.Apply
+import com.database.Apply
 import com.friends.FriendsController
 import com.group.GroupController
 import com.message.MessageController

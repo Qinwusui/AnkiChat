@@ -54,10 +54,12 @@ suspend fun processMsg(userSession: UserSession, text: String) {
 			//检查是否存在这个群，如果存在，那么在数据库中找到所有在这个群的用户
 			//TODO 每次都查数据库会很慢，需要换到Redis存储
 			val users = message.toId?.let { GroupController.findAllUsersByGroupId(it) }
-			users?.map {
-				UserSession(userId = it.userId, token = "")
-			}?.forEach {
-				ChatManager.onlineMembers[it.userId]?.sendSerialized(message)
+			users?.let { it ->
+				it.data?.map {
+					UserSession(userId = it.userId, token = it.pwd)
+				}?.forEach { session ->
+					ChatManager.onlineMembers[session.userId]?.sendSerialized(message)
+				}
 			}
 
 		}

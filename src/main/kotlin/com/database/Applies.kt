@@ -1,4 +1,4 @@
-package com.friends
+package com.database
 
 import org.ktorm.database.Database
 import org.ktorm.entity.Entity
@@ -7,15 +7,16 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.long
 import org.ktorm.schema.text
+import org.ktorm.schema.varchar
 
 val Database.applies get() = this.sequenceOf(Applies)
 
 object Applies : Table<Apply>("friends_applies") {
-	val index = int("index").primaryKey().bindTo { it.index }
-	val sendId = text("send_id").bindTo { it.sendId }
-	val receiveId = text("receive_id").bindTo { it.receiveId }
+	val index = int("index").bindTo { it.index }
+	val sendId = varchar("send_id").bindTo { it.sendId }.references(Users) { it.sendUser }
+	val receiveId = varchar("receive_id").bindTo { it.receiveId }.references(Users) { it.receiveUser }
 	val applyMessage = text("apply_message").bindTo { it.applyMessage }
-	val applyId = text("apply_id").bindTo { it.applyId }
+	val applyId = varchar("apply_id").primaryKey().bindTo { it.applyId }
 	val sendTime = long("send_time").bindTo { it.sendTime }
 }
 
@@ -28,4 +29,6 @@ interface Apply : Entity<Apply> {
 	var applyMessage: String
 	var sendTime: Long
 	var applyId: String
+	var sendUser: User
+	var receiveUser: User
 }
