@@ -5,12 +5,10 @@ import com.config.JacksonConfig.config
 import com.data.UserSession
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.friends.friends
-import com.google.gson.GsonBuilder
 import com.group.group
 import com.message.message
 import com.user.user
 import io.ktor.http.*
-import io.ktor.serialization.gson.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -46,8 +44,8 @@ fun main() {
 			module()
 		}
 		connector {
-			port = 2341
-			host = "0.0.0.0"
+			port = 80
+			host = "[::]"
 		}
 		sslConnector(
 			KeyStore.getInstance(File("./k.jks"), "Qinsansui233...".toCharArray()),
@@ -130,6 +128,7 @@ fun Application.module() {
 	}
 
 	routing {
+		helloworld()
 		user()
 		group()
 		chat()

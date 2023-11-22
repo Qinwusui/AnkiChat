@@ -63,3 +63,20 @@ data class ApplyData(
 	val receiveId: String,
 	val applyMessage: String
 )
+
+@Serializable
+data class Message(
+	val fromId: String,
+	var messageId: String?,
+	val toId: String? = null,
+	val toGroup: String? = null,
+	val data: MessageContent,
+	val type: String,
+	var sendTime: Long?,
+)
+
+@Serializable
+data class MessageContent(
+	val type: String,
+	val content: String
+)

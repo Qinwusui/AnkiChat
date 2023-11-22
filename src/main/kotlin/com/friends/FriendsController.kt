@@ -6,11 +6,13 @@ import com.database.DataBaseManager
 import com.database.Friend
 import com.database.applies
 import com.database.friends
+import com.database.users
 import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
 import org.ktorm.entity.add
 import org.ktorm.entity.filter
 import org.ktorm.entity.find
+import org.ktorm.entity.map
 import org.ktorm.entity.removeIf
 import org.ktorm.entity.toList
 
@@ -24,7 +26,14 @@ object FriendsController {
 
 	//获取用户收到的所有好友申请
 	fun getAllApplies(userId: String): Results<*> {
-		val applies = DataBaseManager.db.applies.filter { it.receiveId eq userId }.toList()
+		val applies = DataBaseManager.db.applies.filter { it.receiveId eq userId }.map {
+			mapOf(
+				"applyId" to it.applyId,
+				"applyMessage" to it.applyMessage,
+				"sendTime" to it.sendTime,
+				"sendId" to it.sendId
+			)
+		}
 		return Results.success(applies)
 	}
 
@@ -38,12 +47,14 @@ object FriendsController {
 	//发送好友申请
 	fun sendAddApply(apply: Apply): Results<*> {
 		//检查是否已经发送过好友申请
-		val find = DataBaseManager.db.applies.find { (it.sendId eq apply.sendId) and (it.receiveId eq it.receiveId) }
+		val find = DataBaseManager.db.applies.find { (it.sendId eq apply.sendId) and (it.receiveId eq apply.receiveId) }
 		if (find != null) {
 			return Results.failure(msg = "您已发送好友申请")
 		}
+		val toUser =
+			DataBaseManager.db.users.find { it.id eq apply.receiveId } ?: return Results.failure("当前用户不存在")
 		DataBaseManager.db.applies.add(apply)
-		return Results.success("发送成功，请等待好友同意")
+		return Results.success("发送成功，请等待${toUser.userName}同意")
 	}
 
 	//同意好友申请

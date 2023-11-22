@@ -1,6 +1,7 @@
 package com.chat
 
 import com.data.UserSession
+import com.database.Message
 import com.utils.successOut
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -40,8 +41,8 @@ fun Routing.chat() {
 					)
 
 					is Frame.Text -> {
-						val msgText = f.readText()
-						processMsg(userSession, msgText)
+						val msg = receiveDeserialized<com.data.Message>()
+						processMsg(userSession, msg)
 					}
 
 					else -> {}

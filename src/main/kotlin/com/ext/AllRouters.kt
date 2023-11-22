@@ -150,6 +150,11 @@ fun Route.sendFriendApply() = post("/send") {
 		return@post
 	}
 	val applyData = call.receive<ApplyData>()
+	if (userSession!!.userId!=applyData.sendId){
+		call.respond(Results.failure("用户信息不匹配"))
+		return@post
+	}
+
 	val apply = Apply {
 		sendId = applyData.sendId
 		receiveId = applyData.receiveId

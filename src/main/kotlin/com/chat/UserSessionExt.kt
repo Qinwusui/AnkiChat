@@ -33,16 +33,14 @@ fun UserSession.online(session: DefaultWebSocketServerSession) {
 
 //服务端处理消息
 //type可能为private，group两种
-suspend fun processMsg(userSession: UserSession, text: String) {
-	val message = gson.fromJson(text, Message::class.java) ?: return
+suspend fun processMsg(userSession: UserSession, message: com.data.Message) {
 	if (message.fromId != userSession.userId) {
 		return
 	}
-	message.fromId = userSession.userId
 	//消息存储进数据库
 	ChatManager.saveMessage(message)
 	//消息是群聊消息还是私聊消息
-	val type = message.messageType
+	val type = message.type
 	when (type) {
 		"private" -> {
 			val user = UserController.findUserById(message.toId) ?: return
