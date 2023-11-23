@@ -1,3 +1,6 @@
+CREATE SCHEMA `chat` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_mysql500_ci ;
+
+use chat;
 -- 创建用户表
 create table users
 (

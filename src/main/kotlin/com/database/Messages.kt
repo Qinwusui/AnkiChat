@@ -18,7 +18,7 @@ object Messages : Table<Message>("messages") {
 	val toId = varchar("to_id")
 		.bindTo { it.toId }
 		.references(Users) { it.toUser }
-	val toGroupId = varchar("group_id").bindTo { it.toGroupId }.references(Groups) { it.toGroup }
+		.references(Groups) { it.toGroup }
 	val messageType = text("message_type").bindTo { it.messageType }
 	val content = text("content").bindTo { it.content }
 	val sendTime = long("send_time").bindTo { it.sendTime }
@@ -31,7 +31,6 @@ interface Message : Entity<Message> {
 	var messageId: String
 	var fromId: String
 	var toId: String?
-	var toGroupId: String?
 	var messageType: String
 	var content: String
 	var sendTime: Long

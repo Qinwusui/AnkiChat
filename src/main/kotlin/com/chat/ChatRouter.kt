@@ -1,14 +1,12 @@
 package com.chat
 
 import com.data.UserSession
-import com.database.Message
 import com.utils.successOut
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.consumeEach
 
 
 fun Routing.chat() {
@@ -23,30 +21,16 @@ fun Routing.chat() {
 		}
 		userSession.online(this)
 		try {
-			incoming.consumeEach { f ->
-				when (f) {
-					is Frame.Close -> {
-						userSession.offline(this)
-					}
+			while (true) {
+				runCatching {
+					receiveDeserialized<com.data.Message>()
+				}.onSuccess {
+					processMsg(userSession, it)
 
-					is Frame.Ping -> send(
-						Frame.byType(
-							false,
-							FrameType.PONG,
-							byteArrayOf(),
-							false,
-							rsv2 = false,
-							rsv3 = false
-						)
-					)
+				}.onFailure {
 
-					is Frame.Text -> {
-						val msg = receiveDeserialized<com.data.Message>()
-						processMsg(userSession, msg)
-					}
-
-					else -> {}
 				}
+
 			}
 		} catch (e: Exception) {
 			e.successOut()

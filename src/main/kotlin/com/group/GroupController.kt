@@ -1,12 +1,12 @@
 package com.group
 
+import com.data.GroupInfo
 import com.data.GroupReqData
 import com.data.Results
 import com.database.DataBaseManager
 import com.database.Group
 import com.database.GroupAdmin
 import com.database.GroupMember
-import com.database.Groups
 import com.database.User
 import com.database.groupAdmins
 import com.database.groupMembers
@@ -17,7 +17,6 @@ import org.ktorm.dsl.eq
 import org.ktorm.entity.add
 import org.ktorm.entity.filter
 import org.ktorm.entity.find
-import org.ktorm.entity.forEach
 import org.ktorm.entity.isNotEmpty
 import org.ktorm.entity.map
 
@@ -80,12 +79,16 @@ object GroupController {
 	//获取用户id所加入的群聊
 	fun getJoinedGroup(userId: String): Results<*> {
 		if (!UserController.userExist(userId)) return Results.failure(msg = "没有这个用户")
-		val groupIds = DataBaseManager.db.groupMembers.filter { it.userId eq userId }.map { it.group }.map {
-			mapOf(
-				"groupId" to it.groupId,
-				"groupName" to it.groupName,
-			)
-		}
+		val groupIds =
+			DataBaseManager.db.groupMembers
+				.filter { it.userId eq userId }
+				.map { it.group }
+				.map {
+					mapOf(
+						"groupId" to it.groupId,
+						"groupName" to it.groupName,
+					)
+				}
 
 		return Results.success(msg = "获取群组成功", data = groupIds)
 
@@ -100,13 +103,21 @@ object GroupController {
 	//通过id查找群聊
 	fun findGroupById(groupId: String): Results<*> {
 		if (!groupExist(groupId)) return Results.failure("群号不存在")
-		return Results.success(data = DataBaseManager.db.groups.find { it.groupId eq groupId })
+		val group = DataBaseManager.db.groups
+			.find { it.groupId eq groupId } ?: return Results.failure("没有找到该群")
+		val groupInfo = GroupInfo(
+			groupId = groupId,
+			groupName = group.groupName,
+			creatorId = group.creatorId,
+			ownerId = group.ownerId
+		)
+		return Results.success(data = groupInfo)
 	}
 
 	//查找某个群的所有群成员
 	fun findAllUsersByGroupId(groupId: String): Results<List<User>> {
 		if (!groupExist(groupId)) return Results.success(emptyList())
-		val users=DataBaseManager.db.groupMembers.filter { it.groupId eq groupId }.map { it.user }
+		val users = DataBaseManager.db.groupMembers.filter { it.groupId eq groupId }.map { it.user }
 		return Results.success(users)
 	}
 }

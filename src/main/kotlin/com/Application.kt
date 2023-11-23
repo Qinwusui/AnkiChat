@@ -35,7 +35,7 @@ fun main() {
 			module()
 		}
 		connector {
-			port = 80
+			port = 2341
 			host = "[::]"
 		}
 		sslConnector(

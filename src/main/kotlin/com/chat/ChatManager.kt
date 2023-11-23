@@ -24,6 +24,7 @@ object ChatManager {
 		return user != null
 	}
 
+
 	//存储消息
 	fun saveMessage(message: com.data.Message): Boolean {
 		if (!checkToId(message.toId) || !checkToId(message.toId) || !checkToId(message.fromId)) return false
@@ -32,8 +33,8 @@ object ChatManager {
 			toId = message.toId
 			messageId = generateId()
 			messageType = message.type
-			toGroupId = message.toGroup
 			content = message.data.content
+			sendTime = System.currentTimeMillis()
 		}
 		DataBaseManager.db.messages.add(msg)
 		return true

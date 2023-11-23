@@ -110,13 +110,13 @@ fun Route.searchGroup() = get("/search") {
 		call.respond(Results.failure())
 		return@get
 	}
-	val id = call.request.queryParameters["id"]
+	val id = call.parameters["groupId"]
 	if (id == null) {
 		call.respond(Results.failure())
 		return@get
 	}
-	val group = GroupController.findGroupById(id)
-	call.respond(group)
+	val results = GroupController.findGroupById(id)
+	call.respond(results)
 }
 
 
@@ -124,11 +124,12 @@ fun Route.searchGroup() = get("/search") {
 fun Route.searchChatMessage() = get("/search") {
 	val id = call.parameters["id"]
 	val type = call.parameters["type"]//消息是私聊还是群聊
+	val limit = call.parameters["limit"] as Int? ?: 10
 	if (userSession == null || id == null || type == null) {
 		call.respond(Results.failure())
 		return@get
 	}
-	val messageList = MessageController.findMessages(id, type)
+	val messageList = MessageController.findMessages(id, type, limit)
 	call.respond(messageList)
 }
 
@@ -150,7 +151,7 @@ fun Route.sendFriendApply() = post("/send") {
 		return@post
 	}
 	val applyData = call.receive<ApplyData>()
-	if (userSession!!.userId!=applyData.sendId){
+	if (userSession!!.userId != applyData.sendId) {
 		call.respond(Results.failure("用户信息不匹配"))
 		return@post
 	}
@@ -197,9 +198,6 @@ fun Route.refuseFriendApply() = post("/refuse") {
 	val results = FriendsController.refuseApply(applyId = apply.applyId)
 	call.respond(results)
 }
-
-
-
 
 
 

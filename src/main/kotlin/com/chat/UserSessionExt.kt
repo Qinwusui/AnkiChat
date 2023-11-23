@@ -2,11 +2,9 @@ package com.chat
 
 import com.data.UserSession
 import com.database.DataBaseManager
-import com.database.Message
 import com.database.users
 import com.group.GroupController
 import com.user.UserController
-import com.utils.gson
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -39,12 +37,15 @@ suspend fun processMsg(userSession: UserSession, message: com.data.Message) {
 	}
 	//消息存储进数据库
 	ChatManager.saveMessage(message)
+
 	//消息是群聊消息还是私聊消息
 	val type = message.type
 	when (type) {
 		"private" -> {
 			val user = UserController.findUserById(message.toId) ?: return
-			ChatManager.onlineMembers[user.userId]?.sendSerialized(message)
+			runCatching {
+				ChatManager.onlineMembers[user.userId]?.sendSerialized(message)
+			}.onFailure { println(it) }
 
 		}
 
