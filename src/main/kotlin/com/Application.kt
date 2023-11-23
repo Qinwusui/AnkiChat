@@ -26,15 +26,6 @@ import java.security.KeyStore
 import java.time.Duration
 
 fun main() {
-//	val keystoreFile=File("./k.jks")
-//	val key= buildKeyStore {
-//		certificate("wusui"){
-//			password="Qinsansui233..."
-//			domains= listOf("127.0.0.1","localhost","0.0.0.0")
-//
-//		}
-//	}
-//	key.saveToFile(keystoreFile,"Qinsansui233...")
 
 	embeddedServer(Netty, environment = applicationEngineEnvironment {
 		log = LoggerFactory.getLogger("ktor")
