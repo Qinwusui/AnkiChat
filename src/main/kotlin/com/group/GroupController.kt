@@ -100,18 +100,23 @@ object GroupController {
 		return DataBaseManager.db.groups.filter { it.groupId eq groupId }.isNotEmpty()
 	}
 
-	//通过id查找群聊
-	fun findGroupById(groupId: String): Results<*> {
+	//通过id查找群聊信息
+	fun requestGroupInfo(groupId: String): Results<*> {
 		if (!groupExist(groupId)) return Results.failure("群号不存在")
-		val group = DataBaseManager.db.groups
-			.find { it.groupId eq groupId } ?: return Results.failure("没有找到该群")
-		val groupInfo = GroupInfo(
-			groupId = groupId,
-			groupName = group.groupName,
-			creatorId = group.creatorId,
-			ownerId = group.ownerId
-		)
-		return Results.success(data = groupInfo)
+		val group = DataBaseManager.db.groups.find { it.groupId eq groupId }
+		return if (group != null) {
+			Results.success(
+				mapOf(
+					"groupId" to group.groupId,
+					"groupName" to group.groupName,
+					"creatorId" to group.creatorId,
+					"ownerId" to group.creatorId,
+					"createTime" to group.createTime
+				)
+			)
+		} else {
+			Results.failure("群组不存在")
+		}
 	}
 
 	//查找某个群的所有群成员

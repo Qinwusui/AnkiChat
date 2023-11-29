@@ -4,6 +4,7 @@ import com.ext.getFriends
 import com.ext.login
 import com.ext.logout
 import com.ext.register
+import com.ext.userInfo
 import io.ktor.server.routing.*
 
 fun Routing.user() = route("/user") {
@@ -13,6 +14,8 @@ fun Routing.user() = route("/user") {
 	login()
 	//获取好友列表
 	getFriends()
+	//获取用户信息
+	userInfo()
 	//退出登录
 	logout()
 }

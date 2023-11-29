@@ -63,12 +63,23 @@ fun Route.getFriends() = get(path = "/{id}/friends") {
 
 	if (userSession == null) {
 		call.respond(Results.failure(msg = "用户信息不正确"))
-
 		return@get
 	}
 	val userId = call.parameters["id"] ?: return@get
 	val friends = FriendsController.findFriendsById(userId)
 	call.respond(friends)
+}
+
+//@GET 获取用户信息
+fun Route.userInfo() = get("/info") {
+	val userId = call.parameters["id"]
+
+	if (userId == null || userSession == null) {
+		call.respond(Results.failure("用户信息不正确"))
+		return@get
+	}
+	val userInfo = UserController.requestUserInfo(userId)
+	call.respond(userInfo)
 }
 
 //@POST createGroup 创建群聊
@@ -115,7 +126,7 @@ fun Route.searchGroup() = get("/search") {
 		call.respond(Results.failure())
 		return@get
 	}
-	val results = GroupController.findGroupById(id)
+	val results = GroupController.requestGroupInfo(id)
 	call.respond(results)
 }
 
@@ -124,13 +135,24 @@ fun Route.searchGroup() = get("/search") {
 fun Route.searchChatMessage() = get("/search") {
 	val id = call.parameters["id"]
 	val type = call.parameters["type"]//消息是私聊还是群聊
-	val limit = call.parameters["limit"] as Int? ?: 10
+	val l = call.parameters["limit"]
+	val limit = l?.toIntOrNull() ?: 10
 	if (userSession == null || id == null || type == null) {
 		call.respond(Results.failure())
 		return@get
 	}
 	val messageList = MessageController.findMessages(id, type, limit)
 	call.respond(messageList)
+}
+
+fun Route.messageInfo() = get("/info") {
+	val id = call.parameters["id"]
+	if (userSession == null || id == null) {
+		call.respond(Results.failure())
+		return@get
+	}
+	val message = MessageController.findMessage(id)
+	call.respond(message)
 }
 
 //@GET 获取某用户收到的所有好友申请记录

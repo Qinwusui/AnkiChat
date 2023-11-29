@@ -2,6 +2,7 @@ package com.chat
 
 import com.database.DataBaseManager
 import com.database.Message
+import com.database.groups
 import com.database.messages
 import com.database.users
 import com.utils.generateId
@@ -21,16 +22,21 @@ object ChatManager {
 		if (toId.isNullOrEmpty()) return false
 		if (!toId.lowercase().all { it in '0'..'9' || it in 'a'..'z' }) return false
 		val user = DataBaseManager.db.users.find { it.id eq toId }
-		return user != null
+		val group = DataBaseManager.db.groups.find { it.groupId eq toId }
+		return user != null || group != null
 	}
 
 
 	//存储消息
 	fun saveMessage(message: com.data.Message): Boolean {
-		if (!checkToId(message.toId) || !checkToId(message.toId) || !checkToId(message.fromId)) return false
+		if (!checkToId(message.toId) || !checkToId(message.fromId)) return false
 		val msg = Message {
 			fromId = message.fromId
-			toId = message.toId
+			if (message.type == "group") {
+				toGroupId = message.toId
+			} else {
+				toId = message.toId
+			}
 			messageId = generateId()
 			messageType = message.type
 			content = message.data.content

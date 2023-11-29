@@ -100,6 +100,23 @@ object UserController {
 
 	}
 
+	fun requestUserInfo(userId: String): Results<*> {
+		val user = DataBaseManager.db.users.find { it.id eq userId }
+		return  if (user != null) {
+			Results.success(
+				mapOf(
+					"userId" to user.userId,
+					"userName" to user.userName,
+					"iconUrl" to user.iconUrl,
+					"lastOnlineTime" to user.lastOnlineTime
+
+				)
+			)
+		} else {
+			Results.failure("获取用户信息失败")
+		}
+
+	}
 
 	//生成Token
 	private fun String.generateToken(key: String = "Qinsansui233...") = runCatching {
