@@ -22,11 +22,11 @@ import io.ktor.server.websocket.*
 import io.ktor.util.*
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.security.KeyStore
 import java.time.Duration
 
 fun main() {
-
+//	TestT()
+//	return
 	embeddedServer(Netty, environment = applicationEngineEnvironment {
 		log = LoggerFactory.getLogger("ktor")
 
@@ -36,18 +36,25 @@ fun main() {
 		}
 		connector {
 			port = 2341
-			host = "[::]"
-		}
-		sslConnector(
-			KeyStore.getInstance(File("./k.jks"), "Qinsansui233...".toCharArray()),
-			keyAlias = "wusui",
-			keyStorePassword = { "Qinsansui233...".toCharArray() },
-			privateKeyPassword = { "Qinsansui233...".toCharArray() }) {
-			port = 443
 			host = "0.0.0.0"
 		}
-	}, configure = {
 
+//		sslConnector(
+//			KeyStore.getInstance(File("./k.jks"), "Qinsansui233...".toCharArray()),
+//			keyAlias = "wusui",
+//			keyStorePassword = { "Qinsansui233...".toCharArray() },
+//			privateKeyPassword = { "Qinsansui233...".toCharArray() })
+//		{
+//			port = 443
+//			host = "0.0.0.0"
+//		}
+	}, configure = {
+		configureBootstrap = {
+
+		}
+		shutdownTimeout = 3000
+		responseWriteTimeoutSeconds = 10
+		requestQueueLimit = 20
 	}).start(wait = true)
 }
 
@@ -68,6 +75,7 @@ fun Application.module() {
 		timeout = Duration.ofSeconds(15)
 
 		contentConverter = JacksonWebsocketContentConverter()
+
 	}
 	install(Compression) {
 		gzip {

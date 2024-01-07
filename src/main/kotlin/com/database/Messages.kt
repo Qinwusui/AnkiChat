@@ -15,11 +15,13 @@ object Messages : Table<Message>("messages") {
 	val index = int("index").bindTo { it.index }
 	val messageId = varchar("message_id").primaryKey().bindTo { it.messageId }
 	val fromId = varchar("from_id").bindTo { it.fromId }.references(Users) { it.fromUser }
-	val toUserId = varchar("to_id")
+	val toId = varchar("to_id")
 		.bindTo { it.toId }.references(Users) { it.toUser }
 	val toGroupId = varchar("to_group_id")
 		.bindTo { it.toGroupId }.references(Groups) { it.toGroup }
-	val messageType = text("message_type").bindTo { it.messageType }
+	val messageType = text("message_type").bindTo { it.messageType }.apply {
+		aliased("消息类型")
+	}
 	val content = text("content").bindTo { it.content }
 	val sendTime = long("send_time").bindTo { it.sendTime }
 }
@@ -32,6 +34,8 @@ interface Message : Entity<Message> {
 	var fromId: String
 	var toId: String?
 	var toGroupId: String?
+
+	//消息类型，群消息还是私聊消息
 	var messageType: String
 	var content: String
 	var sendTime: Long

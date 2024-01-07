@@ -74,7 +74,13 @@ object UserController {
 			if (user == null) {
 				Results.failure(msg = "登录失败")
 			} else {
-				Results.success(msg = "登录成功", data = user.userId to token)
+				Results.success(
+					msg = "登录成功", data = mapOf(
+						"userId" to user.userId,
+						"token" to token,
+						"userName" to user.userName
+					)
+				)
 			}
 		} else {
 
@@ -102,14 +108,13 @@ object UserController {
 
 	fun requestUserInfo(userId: String): Results<*> {
 		val user = DataBaseManager.db.users.find { it.id eq userId }
-		return  if (user != null) {
+		return if (user != null) {
 			Results.success(
 				mapOf(
 					"userId" to user.userId,
 					"userName" to user.userName,
 					"iconUrl" to user.iconUrl,
 					"lastOnlineTime" to user.lastOnlineTime
-
 				)
 			)
 		} else {

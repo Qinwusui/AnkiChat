@@ -1,6 +1,5 @@
 package com.data
 
-import com.database.Message
 import kotlinx.serialization.Serializable
 import org.ktorm.logging.LogLevel
 
@@ -67,14 +66,12 @@ data class ApplyData(
 @Serializable
 data class Message(
 	val fromId: String,
-	val toId: String? = null,
-	val data: MessageContent,
+	val toId: String,
+	var sendName:String,
+	val toName:String,
+	val data: String,
 	val type: String,
 	var sendTime: Long?,
+	var messageId: String?,
 )
 
-@Serializable
-data class MessageContent(
-	val type: String,
-	val content: String
-)

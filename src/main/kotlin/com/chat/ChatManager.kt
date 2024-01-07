@@ -18,7 +18,7 @@ object ChatManager {
 
 
 	//检查发送对象id是否为空
-	fun checkToId(toId: String?): Boolean {
+	private fun checkToId(toId: String?): Boolean {
 		if (toId.isNullOrEmpty()) return false
 		if (!toId.lowercase().all { it in '0'..'9' || it in 'a'..'z' }) return false
 		val user = DataBaseManager.db.users.find { it.id eq toId }
@@ -27,9 +27,9 @@ object ChatManager {
 	}
 
 
-	//存储消息
-	fun saveMessage(message: com.data.Message): Boolean {
-		if (!checkToId(message.toId) || !checkToId(message.fromId)) return false
+	//存储消息，返回消息Id
+	fun saveMessage(message: com.data.Message): String? {
+		if (!checkToId(message.toId) || !checkToId(message.fromId)) return null
 		val msg = Message {
 			fromId = message.fromId
 			if (message.type == "group") {
@@ -39,10 +39,10 @@ object ChatManager {
 			}
 			messageId = generateId()
 			messageType = message.type
-			content = message.data.content
+			content = message.data
 			sendTime = System.currentTimeMillis()
 		}
 		DataBaseManager.db.messages.add(msg)
-		return true
+		return msg.messageId
 	}
 }

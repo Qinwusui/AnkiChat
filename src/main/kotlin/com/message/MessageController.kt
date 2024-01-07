@@ -1,5 +1,6 @@
 package com.message
 
+import com.data.Message
 import com.data.Results
 import com.database.DataBaseManager
 import com.database.messages
@@ -12,74 +13,83 @@ import org.ktorm.entity.sortedBy
 import org.ktorm.entity.take
 
 object MessageController {
-	suspend fun findMessages(id: String, type: String, limit: Int): Results<*> {
+	//查找消息
+	//id:群组id或用户id
+	suspend fun findMessages(id: String, type: String): Results<*> {
 
-		val result = when (type) {
+		return when (type) {
 			"group" -> {
-				findGroupMessages(id, limit)
+				findGroupMessages(id)
 			}
 
 			"private" -> {
-				findPrivateMessages(id, limit)
+				findPrivateMessages(id)
 			}
 
 			else -> Results.failure("消息类型不存在")
 		}
-
-		return result
 	}
 
-	suspend fun findGroupMessages(id: String, limit: Int): Results<*> {
-		val messageList = suspend {
+	//查找群组所有消息
+	private suspend fun findGroupMessages(groupId: String): Results<*> {
+		return suspend {
 			val messages =
 				DataBaseManager.db.messages
-					.filter { (it.messageType eq "group") and (it.toGroupId eq id) }
-					.take(limit)
+					.filter { (it.messageType eq "group") and (it.toGroupId eq groupId) }
 					.sortedBy { it.sendTime }
 					.map {
-						mapOf(
-							"messageId" to it.messageId,
-							"content" to it.content,
-							"sendName" to it.fromUser.userName,
-							"sendId" to it.fromUser.userId,
+						Message(
+							fromId = it.fromId,
+							toId = it.toId ?: it.toGroupId ?: "",
+							data = it.content,
+							sendTime = it.sendTime,
+							messageId = it.messageId,
+							type = it.messageType,
+							sendName = it.fromUser.userName,
+							toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
 						)
 					}
 			Results.success(messages)
 		}()
-		return messageList
 	}
 
-	suspend fun findPrivateMessages(id: String, limit: Int): Results<*> {
+	//查找id对应的私聊消息
+	private suspend fun findPrivateMessages(userId: String): Results<*> {
 		return suspend {
 			Results.success(DataBaseManager.db.messages
-				.filter { (it.toUserId eq id) and (it.messageType eq "private") }
-				.take(limit)
+				.filter { (it.toId eq userId) and (it.messageType eq "private") }
 				.map {
-					mapOf(
-						"messageId" to it.messageId,
+					Message(
+						fromId = it.fromId,
+						toId = it.toId ?: it.toGroupId ?: userId,
+						data = it.content,
+						sendTime = it.sendTime,
+						messageId = it.messageId,
+						type = it.messageType,
+						sendName = it.toUser?.userName ?: it.toId ?: "",
+						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
 					)
 				})
 		}()
 	}
 
-	suspend fun findMessage(id: String): Results<*> {
+	//通过messageId获取单条消息
+	suspend fun findMessage(messageId: String): Results<*> {
 		return suspend {
-			val res = DataBaseManager.db.messages.find { it.messageId eq id }
+			val res = DataBaseManager.db.messages.find { it.messageId eq messageId }
 			if (res != null) {
-				val map = mutableMapOf(
-					"sendId" to res.fromId,
-					"messageId" to res.messageId,
-					"messageType" to res.messageType,
-					"sendTime" to res.sendTime,
-					"content" to res.content
+				val message = Message(
+					fromId = res.fromId,
+					messageId = res.messageId,
+					type = res.messageType,
+					sendTime = res.sendTime,
+					data = res.content,
+					toId = res.toId ?: res.toGroupId ?: "",
+					sendName = res.toUser?.userName ?: res.toId ?: "",
+					toName = res.toUser?.userName ?: res.toGroup?.groupName ?: ""
 				)
-				if (res.toId != null) {
-					map["toUserId"] = res.toId!!
-				}
-				if (res.toGroupId != null) {
-					map["toGroupId"] = res.toGroupId!!
-				}
-				Results.success(map)
+
+				Results.success(message)
 			} else {
 				Results.failure("消息不存在")
 			}

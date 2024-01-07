@@ -28,14 +28,15 @@ fun Route.login() = post(path = "/login") {
 	val userRegisterRespData = UserController.validateUserInfo(user, UserController.UserType.Login)
 	if (userRegisterRespData.code == 200) {
 		runCatching {
-			userRegisterRespData.data as Pair<*, *>
+			userRegisterRespData.data as Map<*, *>
 		}.onFailure {
 			call.respond(Results.failure("获取用户id失败:${it.message}"))
 		}.onSuccess {
-			val (id, token) = it
+			val id = it["userId"] as String?
+			val token = it["token"] as String?
 			userSession = UserSession(
-				userId = id as? String? ?: "",
-				token = token as? String? ?: ""
+				userId = id ?: "",
+				token = token ?: ""
 			)
 		}
 
@@ -136,12 +137,11 @@ fun Route.searchChatMessage() = get("/search") {
 	val id = call.parameters["id"]
 	val type = call.parameters["type"]//消息是私聊还是群聊
 	val l = call.parameters["limit"]
-	val limit = l?.toIntOrNull() ?: 10
 	if (userSession == null || id == null || type == null) {
 		call.respond(Results.failure())
 		return@get
 	}
-	val messageList = MessageController.findMessages(id, type, limit)
+	val messageList = MessageController.findMessages(id, type)
 	call.respond(messageList)
 }
 

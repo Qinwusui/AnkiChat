@@ -36,7 +36,7 @@ suspend fun processMsg(userSession: UserSession, message: com.data.Message) {
 		return
 	}
 	//消息存储进数据库
-	ChatManager.saveMessage(message)
+	val messageId = ChatManager.saveMessage(message) ?: return
 
 	//消息是群聊消息还是私聊消息
 	val type = message.type
@@ -44,7 +44,9 @@ suspend fun processMsg(userSession: UserSession, message: com.data.Message) {
 		"private" -> {
 			val user = UserController.findUserById(message.toId) ?: return
 			runCatching {
-				ChatManager.onlineMembers[user.userId]?.sendSerialized(message)
+				ChatManager.onlineMembers[user.userId]?.sendSerialized(message.apply {
+					this.messageId = messageId
+				})
 			}.onFailure { println(it) }
 
 		}
@@ -52,12 +54,17 @@ suspend fun processMsg(userSession: UserSession, message: com.data.Message) {
 		"group" -> {
 			//检查是否存在这个群，如果存在，那么在数据库中找到所有在这个群的用户
 			//TODO 每次都查数据库会很慢，需要换到Redis存储
-			val users = message.toId?.let { GroupController.findAllUsersByGroupId(it) }
-			users?.let { it ->
+			val users = message.toId.let { GroupController.findAllUsersByGroupId(it) }
+			//对群里所有的成员进行广播
+			users.let { it ->
 				it.data?.map {
 					UserSession(userId = it.userId, token = it.pwd)
 				}?.forEach { session ->
-					ChatManager.onlineMembers[session.userId]?.sendSerialized(message)
+					ChatManager.onlineMembers[session.userId]?.sendSerialized(
+						message.copy(
+							messageId = messageId,
+						)
+					)
 				}
 			}
 
