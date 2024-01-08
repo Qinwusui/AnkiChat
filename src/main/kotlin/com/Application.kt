@@ -127,7 +127,7 @@ fun Application.module() {
 	}
 
 	routing {
-		helloworld()
+		t()
 		user()
 		group()
 		chat()

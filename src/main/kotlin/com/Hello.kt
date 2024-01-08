@@ -4,6 +4,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.helloworld()=get {
+fun Routing.t() = get("/t") {
 	call.respond("HelloWorld")
 }

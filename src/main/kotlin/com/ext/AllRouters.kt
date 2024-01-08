@@ -145,6 +145,7 @@ fun Route.searchChatMessage() = get("/search") {
 	call.respond(messageList)
 }
 
+//@GET 获取单条消息
 fun Route.messageInfo() = get("/info") {
 	val id = call.parameters["id"]
 	if (userSession == null || id == null) {
@@ -153,6 +154,17 @@ fun Route.messageInfo() = get("/info") {
 	}
 	val message = MessageController.findMessage(id)
 	call.respond(message)
+}
+
+//@GET 获取用户的最近聊天
+fun Route.findUsersRecentMessageRecord() = get("/recent") {
+	val id = call.parameters["id"]
+	if (userSession == null || id == null) {
+		call.respond(Results.failure())
+		return@get
+	}
+	val list = MessageController.findUsersRecentMessageRecord(id)
+	call.respond(list)
 }
 
 //@GET 获取某用户收到的所有好友申请记录

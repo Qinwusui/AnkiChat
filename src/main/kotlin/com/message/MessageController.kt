@@ -10,7 +10,8 @@ import org.ktorm.entity.filter
 import org.ktorm.entity.find
 import org.ktorm.entity.map
 import org.ktorm.entity.sortedBy
-import org.ktorm.entity.take
+import org.ktorm.entity.sortedByDescending
+import org.ktorm.entity.toMutableList
 
 object MessageController {
 	//查找消息
@@ -93,6 +94,31 @@ object MessageController {
 			} else {
 				Results.failure("消息不存在")
 			}
+		}()
+	}
+
+	//获取某个用户的最近聊天记录
+	suspend fun findUsersRecentMessageRecord(userId: String): Results<*> {
+		return suspend {
+			val res = DataBaseManager.db.messages.filter { it.fromId eq userId }
+				.sortedByDescending { it.sendTime }
+				.toMutableList()
+				.distinctBy {
+					it.toId ?: it.toGroupId
+				}
+				.map {
+					Message(
+						fromId = it.fromId,
+						toId = it.toId ?: it.toGroupId ?: "",
+						sendName = it.fromUser.userName,
+						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: "",
+						data = it.content,
+						type = it.messageType,
+						sendTime = it.sendTime,
+						messageId = it.messageId
+					)
+				}
+			Results.success(res)
 		}()
 	}
 }
