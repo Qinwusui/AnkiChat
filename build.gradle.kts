@@ -11,10 +11,10 @@ plugins {
 	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
 }
 
-group = "com"
+group = "com.wusui"
 version = "0.0.1"
 application {
-	mainClass.set("com.ApplicationKt")
+	mainClass.set("com.wusui.ApplicationKt")
 
 	val isDevelopment: Boolean = project.ext.has("development")
 	applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -44,6 +44,7 @@ dependencies {
 	implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 	testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
 	implementation("io.ktor:ktor-server-compression:$ktor_version")
+	implementation("io.ktor:ktor-server-config-yaml-jvm:2.3.7")
 
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 	implementation("redis.clients:jedis:5.0.2")

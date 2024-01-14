@@ -1,0 +1,17 @@
+ktor:
+  deployment:
+    port: 23411
+    sslPort: 23412
+    host: 0.0.0.0
+    shutdownTimeout: 3000
+    requestQueueLimit: 20
+    connectionGroupSize: 7
+  application:
+    modules:
+      - com.wusui.ApplicationKt.module
+  security:
+    ssl:
+      keyStore: k.jks
+      keyAlias: wusui
+      keyStorePassword: Qinsansui233...
+      privateKeyPassword: Qinsansui233...
