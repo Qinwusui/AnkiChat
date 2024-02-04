@@ -1,5 +1,6 @@
 package com.wusui.user
 
+import com.wusui.ext.avatar
 import com.wusui.ext.getFriends
 import com.wusui.ext.login
 import com.wusui.ext.logout
@@ -18,4 +19,6 @@ fun Routing.user() = route("/user") {
 	userInfo()
 	//退出登录
 	logout()
+	//头像相关
+	avatar()
 }

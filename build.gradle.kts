@@ -44,9 +44,10 @@ dependencies {
 	implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 	testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
 	implementation("io.ktor:ktor-server-compression:$ktor_version")
-	implementation("io.ktor:ktor-server-config-yaml-jvm:2.3.7")
-
+	implementation("io.ktor:ktor-server-config-yaml-jvm:$ktor_version")
+	implementation("io.ktor:ktor-server-request-validation:$ktor_version")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+	implementation("io.ktor:ktor-server-status-pages:$ktor_version")
 	implementation("redis.clients:jedis:5.0.2")
 
 	implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")

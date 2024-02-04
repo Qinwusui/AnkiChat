@@ -7,18 +7,25 @@ import com.wusui.data.UserSession
 import com.wusui.friends.friends
 import com.wusui.group.group
 import com.wusui.message.message
+import com.wusui.tools.GlobalJson
 import com.wusui.user.user
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.requestvalidation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import java.io.File
 import java.time.Duration
 
@@ -65,6 +72,7 @@ inline fun <reified T : Any> generateSerializer(
 	override fun serialize(session: T): String = om.writeValueAsString(session)
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Application.module() {
 	install(WebSockets) {
 		maxFrameSize = Long.MAX_VALUE
@@ -73,7 +81,9 @@ fun Application.module() {
 		pingPeriod = Duration.ofSeconds(15)
 		timeout = Duration.ofSeconds(15)
 
-		contentConverter = JacksonWebsocketContentConverter()
+		contentConverter = KotlinxWebsocketSerializationConverter(
+			GlobalJson
+		)
 
 	}
 	install(Compression) {
@@ -89,6 +99,7 @@ fun Application.module() {
 		jackson {
 			config("yyyy-MM-dd", "hh:mm:ss", "yyyy-MM-dd hh:mm:ss")
 		}
+		json(GlobalJson)
 //		json(Json {
 //			prettyPrint = true
 //			ignoreUnknownKeys = true
@@ -97,6 +108,18 @@ fun Application.module() {
 //			setPrettyPrinting()
 //			disableHtmlEscaping()
 //		}
+	}
+	install(StatusPages) {
+		exception<RequestValidationException> { call, cause ->
+			call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
+		}
+//		status(HttpStatusCode.NotFound) { call, status ->
+//			call.respondText(text = "啊偶，页面走丢了", status = status)
+//		}
+		status(HttpStatusCode.BadRequest) { applicationCall, httpStatusCode ->
+			applicationCall.respondText(text = "错误的请求", status = httpStatusCode)
+		}
+		statusFile(HttpStatusCode.NotFound, filePattern = "404.html")
 	}
 	install(Sessions) {
 

@@ -5,9 +5,9 @@ import org.ktorm.logging.LogLevel
 
 data class DataBaseConfig(
 	val driverClassName: String = "com.mysql.cj.jdbc.Driver",    // 驱动的类名
-	val url: String = "jdbc:mysql://127.0.0.1:2341/chat",                // jdbc url
+	val url: String = "jdbc:mysql://127.0.0.1:2342/chat",                // jdbc url
 	val username: String = "root",           // 用户名
-	val password: String = "Xyz5201314...",           // 密码
+	val password: String = "Qinsansui233...",           // 密码
 	val initialSize: Int = 10,      // 默认连接数
 	val maxActive: Int = 25,        // 最大连接数
 	val maxWait: Long = 3000,       // 最大等待时间
@@ -50,28 +50,35 @@ data class GroupReqData(
 
 @Serializable
 data class GroupInfo(
-	val groupName: String,
-	val groupId: String,
-	val creatorId: String,
-	val ownerId: String
+	val groupName: String, val groupId: String, val creatorId: String, val ownerId: String
 )
 
 @Serializable
 data class ApplyData(
-	val sendId: String,
-	val receiveId: String,
-	val applyMessage: String
+	val sendId: String, val receiveId: String, val applyMessage: String
 )
 
+/**
+ * @param [fromId] 发送者id
+ * @param [toId] 接收者id
+ * @param [sendName] 发送者昵称
+ * @param [toName] 接收者昵称
+ * @param [content] 发送内容
+ * @param [type] 消息类型，如群聊，私聊
+ * @param [sendTime] 发送时间戳
+ * @param [id] 消息id
+ */
 @Serializable
 data class Message(
 	val fromId: String,
 	val toId: String,
-	var sendName:String,
-	val toName:String,
-	val data: String,
+	var sendName: String,
+	val toName: String,
+	val content: String,
 	val type: String,
 	var sendTime: Long?,
-	var messageId: String?,
+	var id: String?,
 )
+
+
 

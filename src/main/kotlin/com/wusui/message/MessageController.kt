@@ -42,9 +42,9 @@ object MessageController {
 						Message(
 							fromId = it.fromId,
 							toId = it.toId ?: it.toGroupId ?: "",
-							data = it.content,
+							content = it.content,
 							sendTime = it.sendTime,
-							messageId = it.messageId,
+							id = it.messageId,
 							type = it.messageType,
 							sendName = it.fromUser.userName,
 							toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
@@ -63,9 +63,9 @@ object MessageController {
 					Message(
 						fromId = it.fromId,
 						toId = it.toId ?: it.toGroupId ?: userId,
-						data = it.content,
+						content = it.content,
 						sendTime = it.sendTime,
-						messageId = it.messageId,
+						id = it.messageId,
 						type = it.messageType,
 						sendName = it.toUser?.userName ?: it.toId ?: "",
 						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
@@ -81,10 +81,10 @@ object MessageController {
 			if (res != null) {
 				val message = Message(
 					fromId = res.fromId,
-					messageId = res.messageId,
+					id = res.messageId,
 					type = res.messageType,
 					sendTime = res.sendTime,
-					data = res.content,
+					content = res.content,
 					toId = res.toId ?: res.toGroupId ?: "",
 					sendName = res.toUser?.userName ?: res.toId ?: "",
 					toName = res.toUser?.userName ?: res.toGroup?.groupName ?: ""
@@ -112,10 +112,10 @@ object MessageController {
 						toId = it.toId ?: it.toGroupId ?: "",
 						sendName = it.fromUser.userName,
 						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: "",
-						data = it.content,
+						content = it.content,
 						type = it.messageType,
 						sendTime = it.sendTime,
-						messageId = it.messageId
+						id = it.messageId
 					)
 				}
 			Results.success(res)

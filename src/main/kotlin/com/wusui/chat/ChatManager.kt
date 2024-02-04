@@ -39,10 +39,11 @@ object ChatManager {
 			}
 			messageId = generateId()
 			messageType = message.type
-			content = message.data
-			sendTime = System.currentTimeMillis()
+			content = message.content
+			sendTime = message.sendTime ?: System.currentTimeMillis()
 		}
 		DataBaseManager.db.messages.add(msg)
 		return msg.messageId
 	}
+
 }

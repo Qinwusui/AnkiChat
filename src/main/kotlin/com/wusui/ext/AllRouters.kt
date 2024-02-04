@@ -11,12 +11,16 @@ import com.wusui.group.GroupController
 import com.wusui.message.MessageController
 import com.wusui.user.UserController
 import com.wusui.utils.generateId
+import com.wusui.utils.isEndWithImg
+import com.wusui.utils.toDate
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
+import java.io.File
 
 inline var PipelineContext<*, ApplicationCall>.userSession: UserSession?
 	get() = context.sessions.get()
@@ -57,6 +61,49 @@ fun Route.logout() = post("/logout") {
 	val user = call.receive<UserRegisterReqData>()
 	val userRespData = UserController.validateUserInfo(user, UserController.UserType.Logout)
 	call.respond(userRespData)
+}
+
+//头像相关
+fun Route.avatar() = route("/avatar") {
+	uploadAvatar()
+}
+
+//上传头像
+fun Route.uploadAvatar() = post("/upload") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户信息不正确"))
+		return@post
+	}
+	var name = ""
+	var content = byteArrayOf()
+	val multiPartData = call.receiveMultipart()
+	multiPartData.forEachPart { partData: PartData ->
+		when (partData) {
+			is PartData.FileItem -> {
+				name = partData.originalFileName ?: ""
+				content = partData.streamProvider().readBytes()
+			}
+
+			else -> {}
+
+		}
+		partData.dispose()
+
+	}
+	if (name.isEmpty()) {
+		call.respond(Results.failure("请提供文件名称"))
+		return@post
+	}
+	if (!name.isEndWithImg()) {
+		call.respond(Results.failure("文件格式不正确"))
+		return@post
+	}
+	val fileEndName = name.split(".").run {
+		this[this.size - 1]
+	}
+	val imgFile = File("./avatars/${userSession!!.userId}_${System.currentTimeMillis().toDate()}.$fileEndName")
+	imgFile.writeBytes(content)
+	call.respond(Results.success("上传成功"))
 }
 
 //@GET getFriends获取好友列表扩展函数

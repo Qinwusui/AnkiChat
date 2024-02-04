@@ -39,10 +39,8 @@ fun Routing.chat() {
 					launch {
 						processMsg(userSession, message)
 					}
-
 				}
 			}
-
 		} catch (e: Exception) {
 			e.successOut()
 		} finally {
@@ -50,9 +48,5 @@ fun Routing.chat() {
 			userSession.offline(this)
 		}
 	}
-
-}
-
-fun CoroutineScope.refuseRequest() {
 
 }

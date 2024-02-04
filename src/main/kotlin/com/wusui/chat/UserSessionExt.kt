@@ -35,9 +35,10 @@ suspend fun processMsg(userSession: UserSession, message: com.wusui.data.Message
 	if (message.fromId != userSession.userId) {
 		return
 	}
+
+
 	//消息存储进数据库
 	val messageId = ChatManager.saveMessage(message) ?: return
-
 	//消息是群聊消息还是私聊消息
 	val type = message.type
 	when (type) {
@@ -45,7 +46,7 @@ suspend fun processMsg(userSession: UserSession, message: com.wusui.data.Message
 			val user = UserController.findUserById(message.toId) ?: return
 			runCatching {
 				ChatManager.onlineMembers[user.userId]?.sendSerialized(message.apply {
-					this.messageId = messageId
+					this.id = messageId
 				})
 			}.onFailure { println(it) }
 
@@ -62,7 +63,7 @@ suspend fun processMsg(userSession: UserSession, message: com.wusui.data.Message
 				}?.forEach { session ->
 					ChatManager.onlineMembers[session.userId]?.sendSerialized(
 						message.copy(
-							messageId = messageId,
+							id = messageId,
 						)
 					)
 				}

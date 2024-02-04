@@ -11,6 +11,7 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.KeySpec
 import java.security.spec.PKCS8EncodedKeySpec
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.stream.Collectors
 
@@ -24,7 +25,7 @@ fun generateId(): String {
 
 val gson: Gson = GsonBuilder().disableHtmlEscaping().serializeNulls().create()
 
-fun TestT(){
+fun TestT() {
 	val certificateFactory = CertificateFactory.getInstance("X.509")
 	val caInputStream = FileInputStream("./m.pem")
 	val caList =
@@ -33,10 +34,15 @@ fun TestT(){
 	val keystore = KeyStore.getInstance("JKS")
 	keystore.load(null, null)
 
-	val privateKeyBytes="Qinsansui233...".encodeToByteArray()
+	val privateKeyBytes = "Qinsansui233...".encodeToByteArray()
 	val keyFactory = KeyFactory.getInstance("RSA")
 	val privateKeySpec: KeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
 	val privateKey = keyFactory.generatePrivate(privateKeySpec)
-	keystore.setKeyEntry("wusui", privateKey,"Qinsansui233...".toCharArray(), caList.toTypedArray<X509Certificate?>())
+	keystore.setKeyEntry("wusui", privateKey, "Qinsansui233...".toCharArray(), caList.toTypedArray<X509Certificate?>())
 	FileOutputStream("crt.jks").use { outputStream -> keystore.store(outputStream, "Qinsansui233...".toCharArray()) }
 }
+
+fun Long.toDate(): String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(this)
+private val imgFileName = listOf(".png", ".jpg", ".jpeg", ".gif")
+private val videoFileName = listOf(".mp4", ".mov")
+fun String.isEndWithImg() = imgFileName.any { this.endsWith(it) }
