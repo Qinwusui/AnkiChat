@@ -12,7 +12,6 @@ import com.wusui.message.MessageController
 import com.wusui.user.UserController
 import com.wusui.utils.generateId
 import com.wusui.utils.isEndWithImg
-import com.wusui.utils.toDate
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -20,7 +19,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
-import java.io.File
 
 inline var PipelineContext<*, ApplicationCall>.userSession: UserSession?
 	get() = context.sessions.get()
@@ -66,12 +64,32 @@ fun Route.logout() = post("/logout") {
 //头像相关
 fun Route.avatar() = route("/avatar") {
 	uploadAvatar()
+	getAvatar()
+}
+
+//获取用户注册状态
+fun Route.accountRegisterStatus() = get("/registerStatus") {
+	val userName = call.request.queryParameters["userName"]
+	if (userName == null) {
+		call.respond(Results.failure("用户名不能为空"))
+		return@get
+	}
+	if (UserController.userExist(userName)) {
+		call.respond(Results.success(data = true))
+	} else {
+		call.respond(Results.success(data = false))
+	}
 }
 
 //上传头像
 fun Route.uploadAvatar() = post("/upload") {
 	if (userSession == null) {
 		call.respond(Results.failure("用户信息不正确"))
+		return@post
+	}
+	val id = call.request.queryParameters["id"]
+	if (id == null) {
+		call.respond(Results.failure("id不正确"))
 		return@post
 	}
 	var name = ""
@@ -98,12 +116,24 @@ fun Route.uploadAvatar() = post("/upload") {
 		call.respond(Results.failure("文件格式不正确"))
 		return@post
 	}
-	val fileEndName = name.split(".").run {
-		this[this.size - 1]
-	}
-	val imgFile = File("./avatars/${userSession!!.userId}_${System.currentTimeMillis().toDate()}.$fileEndName")
-	imgFile.writeBytes(content)
+	UserController.saveAvatar(id = id, avatar = content)
 	call.respond(Results.success("上传成功"))
+}
+
+//获取头像
+fun Route.getAvatar() = get("/get") {
+	if (userSession == null) {
+		call.respond(Results.failure("用户未认证"))
+		return@get
+	}
+	//可能是用户id，也可能是群组id
+	val id = call.request.queryParameters["id"] ?: userSession?.userId
+	if (id == null) {
+		call.respond(Results.failure("id不正确"))
+		return@get
+	}
+	val avatar = UserController.getAvatar(id)
+	call.respond(avatar)
 }
 
 //@GET getFriends获取好友列表扩展函数

@@ -2,8 +2,10 @@ package com.wusui.user
 
 import com.wusui.data.Results
 import com.wusui.data.UserRegisterReqData
+import com.wusui.database.Avatar
 import com.wusui.database.DataBaseManager
 import com.wusui.database.User
+import com.wusui.database.avatars
 import com.wusui.database.users
 import com.wusui.utils.generateId
 import io.ktor.util.*
@@ -106,6 +108,7 @@ object UserController {
 
 	}
 
+	//获取用户信息
 	fun requestUserInfo(userId: String): Results<*> {
 		val user = DataBaseManager.db.users.find { it.id eq userId }
 		return if (user != null) {
@@ -121,6 +124,33 @@ object UserController {
 			Results.failure("获取用户信息失败")
 		}
 
+	}
+
+	//获取头像
+	fun getAvatar(id: String): Results<*> {
+		val avatar = DataBaseManager.db.avatars.find { it.id eq id }
+		return if (avatar != null) {
+			Results.success(
+				mapOf(
+					"id" to avatar.id,
+					"uploadTime" to avatar.uploadTime,
+					"avatar" to avatar.avatar.encodeBase64()
+				)
+			)
+		} else {
+			Results.failure("获取头像失败")
+		}
+	}
+
+	//保存头像
+	fun saveAvatar(id: String, avatar: ByteArray): Results<*> {
+		DataBaseManager.db.avatars.add(
+			Avatar {
+				this.id = id
+				this.uploadTime = System.currentTimeMillis()
+				this.avatar = avatar
+			})
+		return Results.success("保存头像成功")
 	}
 
 	//生成Token

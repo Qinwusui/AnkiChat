@@ -1,5 +1,6 @@
 package com.wusui.user
 
+import com.wusui.ext.accountRegisterStatus
 import com.wusui.ext.avatar
 import com.wusui.ext.getFriends
 import com.wusui.ext.login
@@ -21,4 +22,6 @@ fun Routing.user() = route("/user") {
 	logout()
 	//头像相关
 	avatar()
+	//账户注册状态
+	accountRegisterStatus()
 }
