@@ -17,7 +17,6 @@ object MessageController {
 	//查找消息
 	//id:群组id或用户id
 	suspend fun findMessages(id: String, type: String): Results<*> {
-
 		return when (type) {
 			"group" -> {
 				findGroupMessages(id)
@@ -41,13 +40,13 @@ object MessageController {
 					.map {
 						Message(
 							fromId = it.fromId,
-							toId = it.toId ?: it.toGroupId ?: "",
+							toId = (it.toId ?: it.toGroupId ?: ""),
 							content = it.content,
 							sendTime = it.sendTime,
 							id = it.messageId,
 							type = it.messageType,
 							sendName = it.fromUser.userName,
-							toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
+							toName = (it.toUser?.userName ?: it.toGroup?.groupName ?: "")
 						)
 					}
 			Results.success(messages)
@@ -62,13 +61,13 @@ object MessageController {
 				.map {
 					Message(
 						fromId = it.fromId,
-						toId = it.toId ?: it.toGroupId ?: userId,
+						toId = (it.toId ?: it.toGroupId ?: userId),
 						content = it.content,
 						sendTime = it.sendTime,
 						id = it.messageId,
 						type = it.messageType,
-						sendName = it.toUser?.userName ?: it.toId ?: "",
-						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: ""
+						sendName = (it.toUser?.userName ?: it.toId ?: ""),
+						toName = (it.toUser?.userName ?: it.toGroup?.groupName ?: "")
 					)
 				})
 		}()
@@ -85,9 +84,9 @@ object MessageController {
 					type = res.messageType,
 					sendTime = res.sendTime,
 					content = res.content,
-					toId = res.toId ?: res.toGroupId ?: "",
-					sendName = res.toUser?.userName ?: res.toId ?: "",
-					toName = res.toUser?.userName ?: res.toGroup?.groupName ?: ""
+					sendName = (res.toUser?.userName ?: res.toId ?: ""),
+					toId = (res.toId ?: res.toGroupId ?: ""),
+					toName = (res.toUser?.userName ?: res.toGroup?.groupName ?: "")
 				)
 
 				Results.success(message)
@@ -109,9 +108,9 @@ object MessageController {
 				.map {
 					Message(
 						fromId = it.fromId,
-						toId = it.toId ?: it.toGroupId ?: "",
+						toId = (it.toId ?: it.toGroupId ?: ""),
 						sendName = it.fromUser.userName,
-						toName = it.toUser?.userName ?: it.toGroup?.groupName ?: "",
+						toName = (it.toUser?.userName ?: it.toGroup?.groupName ?: ""),
 						content = it.content,
 						type = it.messageType,
 						sendTime = it.sendTime,

@@ -7,6 +7,7 @@ import com.wusui.database.messages
 import com.wusui.database.users
 import com.wusui.utils.generateId
 import io.ktor.server.websocket.*
+import io.ktor.util.*
 import org.ktorm.dsl.eq
 import org.ktorm.entity.add
 import org.ktorm.entity.find

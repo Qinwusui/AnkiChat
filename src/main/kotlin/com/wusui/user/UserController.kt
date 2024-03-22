@@ -134,7 +134,7 @@ object UserController {
 				mapOf(
 					"id" to avatar.id,
 					"uploadTime" to avatar.uploadTime,
-					"avatar" to avatar.avatar.encodeBase64()
+					"avatar" to avatar.avatar
 				)
 			)
 		} else {
